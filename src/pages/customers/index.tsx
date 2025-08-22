@@ -270,18 +270,18 @@ export const CustomerList: React.FC = () => {
           <div>
             <DollarOutlined style={{ color: '#52c41a' }} />
             <Text style={{ marginLeft: 4 }}>
-              ₦{record.totalSpentAllTime.toLocaleString()}
+              ₦{record?.totalSpentAllTime?.toLocaleString()}
             </Text>
           </div>
           <div>
             <Text type='secondary' style={{ fontSize: '12px' }}>
-              Avg: ₦{record.averageSpendPerTrip.toLocaleString()}
+              Avg: ₦{record?.averageSpendPerTrip?.toLocaleString()}
             </Text>
           </div>
           <div>
             <WalletOutlined style={{ color: '#1890ff' }} />
             <Text style={{ marginLeft: 4, fontSize: '12px' }}>
-              ₦{record.totalWalletTopUps.toLocaleString()}
+              ₦{record?.totalWalletTopUps?.toLocaleString()}
             </Text>
           </div>
         </Space>

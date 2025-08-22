@@ -1,7 +1,6 @@
 import { DataProvider } from '@refinedev/core';
 import { Client, gql } from '@urql/core';
 
-
 const GET_TRIPS = gql`
   query ListTrips(
     $pagination: PaginationInput
@@ -32,18 +31,28 @@ const GET_TRIPS = gql`
       }
       pickup {
         address
-        coordinates
+        location {
+          coordinates
+        }
       }
       destination {
         address
-        coordinates
+        location {
+          coordinates
+        }
       }
       pricing {
         finalAmount
         baseAmount
-        distanceAmount
-        timeAmount
-        surgeAmount
+        surgeMultiplier
+
+        breakdown {
+          baseFare
+          distanceCharge
+          timeCharge
+          surgeFee
+          discount
+        }
       }
       paymentMethod
       requestedAt
@@ -89,9 +98,15 @@ const GET_TRIP = gql`
       pricing {
         finalAmount
         baseAmount
-        distanceAmount
-        timeAmount
-        surgeAmount
+        surgeMultiplier
+
+        breakdown {
+          baseFare
+          distanceCharge
+          timeCharge
+          surgeFee
+          discount
+        }
       }
       paymentMethod
       paymentStatus
@@ -248,7 +263,7 @@ const GET_CUSTOMER = gql`
       profilePhotoSet
       personalInfoSet
       walletId
-      paymentPreferences {
+      paymentPpaymentReferences {
         preferredMethod
         autoTopUp
         autoTopUpThreshold
@@ -264,6 +279,81 @@ const GET_CUSTOMER = gql`
   }
 `;
 
+// Vehicle Operations
+const GET_VEHICLES = gql`
+  query ListVehicles(
+    $pagination: PaginationInput
+    $filter: VehicleFilter
+    $sort: VehicleSort
+  ) {
+    listVehicles(pagination: $pagination, filter: $filter, sort: $sort) {
+      id
+      brand
+      modelName
+      manufactureYear
+      color
+      identificationNumber
+      plateNumber
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const GET_VEHICLE = gql`
+  query GetVehicle($id: ID!) {
+    getVehicle(id: $id) {
+      id
+      brand
+      modelName
+      manufactureYear
+      color
+      identificationNumber
+      plateNumber
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const CREATE_VEHICLE = gql`
+  mutation CreateVehicle($input: VehicleInput!) {
+    createVehicle(input: $input) {
+      id
+      brand
+      modelName
+      manufactureYear
+      color
+      identificationNumber
+      plateNumber
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const UPDATE_VEHICLE = gql`
+  mutation UpdateVehicle($id: ID!, $input: VehicleInput!) {
+    updateVehicle(id: $id, input: $input) {
+      id
+      brand
+      modelName
+      manufactureYear
+      color
+      identificationNumber
+      plateNumber
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const DELETE_VEHICLE = gql`
+  mutation DeleteVehicle($id: ID!) {
+    deleteVehicle(id: $id)
+  }
+`;
+
 const GET_SUBSCRIPTION_PLANS = gql`
   query ListSubscriptionPlans(
     $pagination: PaginationInput
@@ -273,13 +363,9 @@ const GET_SUBSCRIPTION_PLANS = gql`
       id
       name
       description
-      amount
-      currency
-      duration
+      price
       features
       isActive
-      maxTripsPerDay
-      commissionRate
       createdAt
       updatedAt
     }
@@ -292,14 +378,9 @@ const GET_SUBSCRIPTION_PLAN = gql`
       id
       name
       description
-      amount
-      currency
-      duration
+      price
       features
       isActive
-      maxTripsPerDay
-      commissionRate
-      subscribersCount
       createdAt
       updatedAt
     }
@@ -312,7 +393,7 @@ const CREATE_SUBSCRIPTION_PLAN = gql`
       id
       name
       description
-      amount
+      price
       currency
       duration
       features
@@ -332,13 +413,11 @@ const UPDATE_SUBSCRIPTION_PLAN = gql`
       id
       name
       description
-      amount
+      price
       currency
       duration
       features
       isActive
-      maxTripsPerDay
-      commissionRate
     }
   }
 `;
@@ -359,15 +438,12 @@ const GET_SUBSCRIPTIONS = gql`
       plan {
         id
         name
-        amount
-        currency
-        duration
+        price
       }
       status
       startDate
       endDate
       autoRenew
-      remainingTrips
       createdAt
     }
   }
@@ -381,7 +457,7 @@ const GET_PAYMENTS = gql`
       currency
       status
       paymentMethod
-      reference
+      paymentReference
       trip {
         id
         tripNumber
@@ -394,13 +470,13 @@ const GET_PAYMENTS = gql`
           lastname
         }
       }
-      customer {
-        id
-        firstname
-        lastname
-      }
+      # customer {
+      #   id
+      #   firstname
+      #   lastname
+      # }
       createdAt
-      processedAt
+      completedAt
     }
   }
 `;
@@ -603,12 +679,14 @@ const GET_AUDIT_LOGS = gql`
 const GET_AUDIT_STATS = gql`
   query GetAuditStats($days: Int) {
     getAuditStats(days: $days) {
-      totalActions
-      successfulActions
-      failedActions
-      topActions
-      topAdmins
-      activityByDay
+      topActions {
+        action
+        count
+      }
+      topAdmins {
+        adminEmail
+        # count
+      }
     }
   }
 `;
@@ -659,6 +737,9 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
           break;
         case 'customers':
           query = GET_CUSTOMERS;
+          break;
+        case 'vehicles':
+          query = GET_VEHICLES;
           break;
         case 'subscriptions':
           query = GET_SUBSCRIPTIONS;
@@ -733,6 +814,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
           query = GET_CUSTOMER;
           dataKey = 'getCustomer';
           break;
+        case 'vehicles':
+          query = GET_VEHICLE;
+          dataKey = 'getVehicle';
+          break;
         case 'subscription-plans':
           query = GET_SUBSCRIPTION_PLAN;
           dataKey = 'getSubscriptionPlan';
@@ -769,6 +854,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         case 'drivers':
           mutation = CREATE_DRIVER;
           dataKey = 'registerDriver';
+          break;
+        case 'vehicles':
+          mutation = CREATE_VEHICLE;
+          dataKey = 'createVehicle';
           break;
         case 'subscription-plans':
           mutation = CREATE_SUBSCRIPTION_PLAN;
@@ -811,6 +900,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
           mutation = UPDATE_DRIVER;
           dataKey = 'updateDriverPersonalInfo';
           break;
+        case 'vehicles':
+          mutation = UPDATE_VEHICLE;
+          dataKey = 'updateVehicle';
+          break;
         case 'subscription-plans':
           mutation = UPDATE_SUBSCRIPTION_PLAN;
           dataKey = 'updateSubscriptionPlan';
@@ -843,6 +936,9 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       switch (resource) {
         case 'admins':
           mutation = DELETE_ADMIN;
+          break;
+        case 'vehicles':
+          mutation = DELETE_VEHICLE;
           break;
         default:
           throw new Error(`Delete not implemented for ${resource} yet`);

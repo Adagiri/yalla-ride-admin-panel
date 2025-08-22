@@ -37,19 +37,20 @@ import {
 
 // Import pages
 import { DashboardPage } from './pages/dashboard';
-import { TripList, 
+import {
+  TripList,
   // TripShow, TripEdit
- } from './pages/trips';
+} from './pages/trips';
 import {
   DriverList,
   // DriverShow,
   // DriverEdit,
   // DriverCreate,
 } from './pages/drivers';
-import { CustomerList, 
-  
-  // CustomerShow, CustomerEdit
+import {
+  CustomerList,
 
+  // CustomerShow, CustomerEdit
 } from './pages/customers';
 import {
   SubscriptionList,
@@ -57,17 +58,21 @@ import {
   // SubscriptionEdit,
   // SubscriptionCreate,
 } from './pages/subscriptions';
-import { PaymentList,
+import {
+  PaymentList,
   //  PaymentShow
-   } from './pages/payments';
-import { VehicleList, 
+} from './pages/payments';
+import {
+  VehicleList,
   // VehicleShow, VehicleEdit
- } from './pages/vehicles';
+} from './pages/vehicles';
 import { NotificationList, NotificationCreate } from './pages/notifications';
 import { SystemSettings } from './pages/settings';
-import { AdminList, 
+import {
+  AdminList,
   // AdminShow, AdminEdit,
-   AdminCreate } from './pages/admins';
+  AdminCreate,
+} from './pages/admins';
 import { AuditLogs } from './pages/audit';
 
 // Import auth components
@@ -95,25 +100,24 @@ export const client = new Client({
 const dataProvider = createCustomDataProvider(client);
 
 // Authentication provider with backend integration
+// Authentication provider with backend integration
 const authProvider: AuthBindings = {
   login: async ({ email, password }: { email: string; password: string }) => {
     try {
       const mutation = `
-        mutation Login($input: LoginInput!) {
-          login(input: $input) {
+        mutation AdminLogin($input: AdminLoginInput!) {
+          adminLogin(input: $input) {
             token
-            entity {
+            admin {
               id
               firstname
               lastname
               email
-              accountType
               role
-              permissions
               department
+              permissions
               isActive
               isEmailVerified
-              isMFAEnabled
             }
             expiresAt
           }
@@ -125,39 +129,65 @@ const authProvider: AuthBindings = {
           input: {
             email,
             password,
-            accountType: 'ADMIN',
           },
         })
         .toPromise();
 
-      if (result.error || !result.data?.login) {
+      // Better error handling to extract the actual error message
+      if (result.error) {
+        // Extract the detailed error message from GraphQL errors
+        let errorMessage = 'Login failed';
+        
+        if (result.error.graphQLErrors && result.error.graphQLErrors.length > 0) {
+          const graphQLError = result.error.graphQLErrors[0];
+          
+          // Check for detailed message in extensions
+          if (graphQLError.extensions?.details) {
+            errorMessage = graphQLError.extensions.details;
+          } else if (graphQLError.message) {
+            errorMessage = graphQLError.message;
+          }
+        } else if (result.error.message) {
+          errorMessage = result.error.message;
+        }
+
+        console.error('Login error:', errorMessage);
+        
         return {
           success: false,
           error: {
             name: 'Login Error',
-            message:
-              result.error?.graphQLErrors?.[0]?.message ||
-              'Invalid credentials',
+            message: errorMessage, // This will now show "Invalid credentials" or other specific error
           },
         };
       }
 
-      const { token, entity, expiresAt } = result.data.login;
-
-      // Verify this is an admin account
-      if (entity.accountType !== 'ADMIN') {
+      if (!result.data?.adminLogin) {
         return {
           success: false,
           error: {
-            name: 'Access Denied',
-            message: 'Only admin accounts can access this panel',
+            name: 'Login Error',
+            message: 'Login failed. Please try again.',
+          },
+        };
+      }
+
+      const { token, admin, expiresAt } = result.data.adminLogin;
+
+      // Verify the admin account is active
+      if (!admin.isActive) {
+        return {
+          success: false,
+          error: {
+            name: 'Account Inactive',
+            message: 'Your admin account has been deactivated. Please contact support.',
           },
         };
       }
 
       // Store authentication data
       localStorage.setItem('token', token);
-      localStorage.setItem('admin', JSON.stringify(entity));
+      localStorage.setItem('admin', JSON.stringify(admin));
       localStorage.setItem('expiresAt', expiresAt);
 
       return {
@@ -165,11 +195,13 @@ const authProvider: AuthBindings = {
         redirectTo: '/dashboard',
       };
     } catch (error: any) {
+      console.error('Unexpected error during login:', error);
+      
       return {
         success: false,
         error: {
           name: 'Login Error',
-          message: error.message || 'An error occurred during login',
+          message: error.message || 'An unexpected error occurred. Please try again.',
         },
       };
     }
@@ -188,13 +220,18 @@ const authProvider: AuthBindings = {
             }
           }
         `;
-        await client.mutation(mutation).toPromise();
+        
+        const result = await client.mutation(mutation).toPromise();
+        
+        if (result.error) {
+          console.error('Logout error:', result.error);
+        }
       } catch (error) {
         console.error('Logout error:', error);
       }
     }
 
-    // Clear local storage
+    // Clear local storage regardless of logout API success
     localStorage.removeItem('token');
     localStorage.removeItem('admin');
     localStorage.removeItem('expiresAt');
@@ -229,6 +266,39 @@ const authProvider: AuthBindings = {
       return {
         authenticated: false,
         redirectTo: '/auth/login',
+        error: {
+          message: 'Your session has expired. Please login again.',
+          name: 'Session Expired',
+        },
+      };
+    }
+
+    // Parse admin data to check if still active
+    try {
+      const adminData = JSON.parse(admin);
+      if (!adminData.isActive) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('admin');
+        localStorage.removeItem('expiresAt');
+
+        return {
+          authenticated: false,
+          redirectTo: '/auth/login',
+          error: {
+            message: 'Your account has been deactivated.',
+            name: 'Account Inactive',
+          },
+        };
+      }
+    } catch (e) {
+      // If we can't parse admin data, logout
+      localStorage.removeItem('token');
+      localStorage.removeItem('admin');
+      localStorage.removeItem('expiresAt');
+
+      return {
+        authenticated: false,
+        redirectTo: '/auth/login',
       };
     }
 
@@ -241,27 +311,36 @@ const authProvider: AuthBindings = {
     const admin = localStorage.getItem('admin');
     if (!admin) return null;
 
-    const adminData = JSON.parse(admin);
-    return adminData.permissions || [];
+    try {
+      const adminData = JSON.parse(admin);
+      return adminData.permissions || [];
+    } catch (e) {
+      return [];
+    }
   },
 
   getIdentity: async () => {
     const admin = localStorage.getItem('admin');
     if (!admin) return null;
 
-    const adminData = JSON.parse(admin);
-    return {
-      id: adminData.id,
-      name: `${adminData.firstname} ${adminData.lastname}`,
-      email: adminData.email,
-      role: adminData.role,
-      department: adminData.department,
-      avatar: adminData.profilePhoto,
-    };
+    try {
+      const adminData = JSON.parse(admin);
+      return {
+        id: adminData.id,
+        name: `${adminData.firstname} ${adminData.lastname}`,
+        email: adminData.email,
+        role: adminData.role,
+        department: adminData.department,
+        avatar: adminData.profilePhoto,
+      };
+    } catch (e) {
+      return null;
+    }
   },
 
   onError: async (error) => {
-    if (error.statusCode === 401) {
+    // Handle 401 Unauthorized errors
+    if (error.statusCode === 401 || error.code === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('admin');
       localStorage.removeItem('expiresAt');
@@ -270,16 +349,26 @@ const authProvider: AuthBindings = {
         logout: true,
         redirectTo: '/auth/login',
         error: {
-          message: 'Session expired. Please login again.',
-          name: 'Authentication Error',
+          message: 'Your session has expired. Please login again.',
+          name: 'Session Expired',
         },
       };
     }
 
+    // Handle 403 Forbidden errors
+    if (error.statusCode === 403 || error.code === 403) {
+      return {
+        error: {
+          message: 'You do not have permission to perform this action.',
+          name: 'Access Denied',
+        },
+      };
+    }
+
+    // Pass through other errors
     return { error };
   },
 };
-
 // Main App component
 function App() {
   return (
@@ -382,15 +471,15 @@ function App() {
                     icon: <FileTextOutlined />,
                   },
                 },
-                {
-                  name: 'notifications',
-                  list: '/notifications',
-                  create: '/notifications/create',
-                  meta: {
-                    label: 'Notifications',
-                    icon: <BellOutlined />,
-                  },
-                },
+                // {
+                //   name: 'notifications',
+                //   list: '/notifications',
+                //   create: '/notifications/create',
+                //   meta: {
+                //     label: 'Notifications',
+                //     icon: <BellOutlined />,
+                //   },
+                // },
                 {
                   name: 'audit-logs',
                   list: '/audit-logs',

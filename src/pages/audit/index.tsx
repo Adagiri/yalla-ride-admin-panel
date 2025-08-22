@@ -28,6 +28,7 @@ import {
   CloseCircleOutlined,
   CalendarOutlined,
 } from '@ant-design/icons';
+import { gql } from 'urql';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -49,14 +50,68 @@ interface AuditLog {
   metadata?: any;
 }
 
-interface AuditStats {
-  totalActions: number;
-  successfulActions: number;
-  failedActions: number;
-  topActions: Array<{ action: string; count: number }>;
-  topAdmins: Array<{ adminEmail: string; count: number }>;
-  activityByDay: Array<{ date: string; count: number }>;
+interface TopAction {
+  action: string;
+  count: number;
 }
+
+interface TopAdmin {
+  adminEmail: string;
+  // count: number;
+}
+
+interface AuditStats {
+  topActions: TopAction[];
+  topAdmins: TopAdmin[];
+}
+
+interface AuditLogsResponse {
+  logs: AuditLog[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+// Fixed GraphQL Queries
+const GET_AUDIT_LOGS = gql`
+  query GetAuditLogs($filters: AuditLogFiltersInput) {
+    getAuditLogs(filters: $filters) {
+      logs {
+        id
+        adminId
+        adminEmail
+        adminRole
+        action
+        resource
+        resourceId
+        success
+        timestamp
+        ipAddress
+        userAgent
+        errorMessage
+        metadata
+      }
+      total
+      page
+      totalPages
+    }
+  }
+`;
+
+const GET_AUDIT_STATS = gql`
+  query GetAuditStats($days: Int) {
+    getAuditStats(days: $days) {
+      topActions {
+        action
+        count
+      }
+      topAdmins {
+        adminEmail
+        count
+      }
+    }
+  }
+`;
 
 export const AuditLogs: React.FC = () => {
   const [filters, setFilters] = useState<any>({});
@@ -66,13 +121,11 @@ export const AuditLogs: React.FC = () => {
     data: logsData,
     isLoading,
     refetch,
-  } = useCustom<{ logs: AuditLog[]; total: number }>({
+  } = useCustom<AuditLogsResponse>({
     url: 'audit-logs',
     method: 'get',
     config: {
-      query: {
-        filters,
-      },
+      query: filters,
     },
   });
 
@@ -88,11 +141,58 @@ export const AuditLogs: React.FC = () => {
   });
 
   const logs = logsData?.data?.logs || [];
+  const total = logsData?.data?.total || 0;
   const stats = statsData?.data;
 
+  // Calculate derived statistics from logs data
+  const calculateStats = () => {
+    if (!logs.length) {
+      return {
+        totalActions: 0,
+        successfulActions: 0,
+        failedActions: 0,
+        successRate: 0,
+      };
+    }
+
+    const totalActions = logs.length;
+    const successfulActions = logs.filter((log) => log.success).length;
+    const failedActions = totalActions - successfulActions;
+    const successRate =
+      totalActions > 0 ? (successfulActions / totalActions) * 100 : 0;
+
+    return {
+      totalActions,
+      successfulActions,
+      failedActions,
+      successRate,
+    };
+  };
+
+  const calculatedStats = calculateStats();
+
   const handleSearch = (values: any) => {
-    setFilters(values);
-    refetch();
+    const searchFilters: any = {};
+
+    if (values.adminEmail) {
+      searchFilters.adminEmail = values.adminEmail;
+    }
+    if (values.action) {
+      searchFilters.action = values.action;
+    }
+    if (values.resource) {
+      searchFilters.resource = values.resource;
+    }
+    if (values.dateRange && values.dateRange.length === 2) {
+      searchFilters.startDate = values.dateRange[0].toISOString();
+      searchFilters.endDate = values.dateRange[1].toISOString();
+    }
+
+    setFilters(searchFilters);
+  };
+
+  const clearFilters = () => {
+    setFilters({});
   };
 
   const getActionColor = (action: string) => {
@@ -118,6 +218,7 @@ export const AuditLogs: React.FC = () => {
         </div>
       ),
       sorter: true,
+      width: 150,
     },
     {
       title: 'Admin',
@@ -125,9 +226,10 @@ export const AuditLogs: React.FC = () => {
       render: (_: any, record: AuditLog) => (
         <Space direction='vertical' size='small'>
           <Text strong>{record.adminEmail}</Text>
-          {record.adminRole && <Tag >{record.adminRole}</Tag>}
+          {record.adminRole && <Tag>{record.adminRole}</Tag>}
         </Space>
       ),
+      width: 200,
     },
     {
       title: 'Action',
@@ -143,6 +245,7 @@ export const AuditLogs: React.FC = () => {
           </Text>
         </Space>
       ),
+      width: 180,
     },
     {
       title: 'Status',
@@ -154,6 +257,7 @@ export const AuditLogs: React.FC = () => {
           text={success ? 'Success' : 'Failed'}
         />
       ),
+      width: 100,
     },
     {
       title: 'Resource',
@@ -168,6 +272,7 @@ export const AuditLogs: React.FC = () => {
           )}
         </Space>
       ),
+      width: 150,
     },
     {
       title: 'Details',
@@ -179,7 +284,7 @@ export const AuditLogs: React.FC = () => {
           )}
           {record.errorMessage && (
             <Text type='danger' style={{ fontSize: '12px' }}>
-              Error: {record.errorMessage}
+              Error: {record.errorMessage.substring(0, 50)}...
             </Text>
           )}
         </Space>
@@ -199,56 +304,47 @@ export const AuditLogs: React.FC = () => {
       </div>
 
       {/* Statistics Cards */}
-      {stats && (
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={6}>
-            <Card size='small'>
-              <Statistic
-                title='Total Actions'
-                value={stats.totalActions}
-                prefix={<AuditOutlined />}
-              />
-            </Card>
-          </Col>
-          <Col span={6}>
-            <Card size='small'>
-              <Statistic
-                title='Successful'
-                value={stats.successfulActions}
-                prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: '#52c41a' }}
-              />
-            </Card>
-          </Col>
-          <Col span={6}>
-            <Card size='small'>
-              <Statistic
-                title='Failed'
-                value={stats.failedActions}
-                prefix={<CloseCircleOutlined />}
-                valueStyle={{ color: '#ff4d4f' }}
-              />
-            </Card>
-          </Col>
-          <Col span={6}>
-            <Card size='small'>
-              <Statistic
-                title='Success Rate'
-                value={
-                  stats.totalActions > 0
-                    ? (
-                        (stats.successfulActions / stats.totalActions) *
-                        100
-                      ).toFixed(1)
-                    : 0
-                }
-                suffix='%'
-                valueStyle={{ color: '#1890ff' }}
-              />
-            </Card>
-          </Col>
-        </Row>
-      )}
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={6}>
+          <Card size='small'>
+            <Statistic
+              title='Total Actions'
+              value={calculatedStats.totalActions}
+              prefix={<AuditOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card size='small'>
+            <Statistic
+              title='Successful'
+              value={calculatedStats.successfulActions}
+              prefix={<CheckCircleOutlined />}
+              valueStyle={{ color: '#52c41a' }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card size='small'>
+            <Statistic
+              title='Failed'
+              value={calculatedStats.failedActions}
+              prefix={<CloseCircleOutlined />}
+              valueStyle={{ color: '#ff4d4f' }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card size='small'>
+            <Statistic
+              title='Success Rate'
+              value={calculatedStats.successRate.toFixed(1)}
+              suffix='%'
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+      </Row>
 
       {/* Filters */}
       <Card style={{ marginBottom: 16 }}>
@@ -296,13 +392,7 @@ export const AuditLogs: React.FC = () => {
             </Button>
           </Form.Item>
           <Form.Item>
-            <Button
-              icon={<FilterOutlined />}
-              onClick={() => {
-                setFilters({});
-                refetch();
-              }}
-            >
+            <Button icon={<FilterOutlined />} onClick={clearFilters}>
               Clear
             </Button>
           </Form.Item>
@@ -329,11 +419,14 @@ export const AuditLogs: React.FC = () => {
           columns={columns}
           rowKey='id'
           loading={isLoading}
+          scroll={{ x: 1000 }}
           pagination={{
+            total: total,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
               `${range[0]}-${range[1]} of ${total} logs`,
+            pageSizeOptions: ['10', '20', '50', '100'],
           }}
         />
       </Card>
@@ -342,40 +435,62 @@ export const AuditLogs: React.FC = () => {
       {stats && (
         <Row gutter={16} style={{ marginTop: 24 }}>
           <Col span={12}>
-            <Card title='Top Actions'>
-              {stats.topActions.map((action, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginBottom: 8,
-                  }}
-                >
-                  <Text>{action.action.replace(/_/g, ' ')}</Text>
-                  <Text strong>{action.count}</Text>
-                </div>
-              ))}
+            <Card title='Top Actions' size='small'>
+              {stats.topActions && stats.topActions.length > 0 ? (
+                stats.topActions.map((action, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: 8,
+                      padding: '4px 0',
+                      borderBottom: '1px solid #f0f0f0',
+                    }}
+                  >
+                    <Text>{action.action.replace(/_/g, ' ')}</Text>
+                    <Tag color='blue'>{action.count}</Tag>
+                  </div>
+                ))
+              ) : (
+                <Text type='secondary'>No data available</Text>
+              )}
             </Card>
           </Col>
           <Col span={12}>
-            <Card title='Most Active Admins'>
-              {stats.topAdmins.map((admin, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginBottom: 8,
-                  }}
-                >
-                  <Text>{admin.adminEmail}</Text>
-                  <Text strong>{admin.count}</Text>
-                </div>
-              ))}
+            <Card title='Most Active Admins' size='small'>
+              {stats.topAdmins && stats.topAdmins.length > 0 ? (
+                stats.topAdmins.map((admin, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: 8,
+                      padding: '4px 0',
+                      borderBottom: '1px solid #f0f0f0',
+                    }}
+                  >
+                    <Text>{admin.adminEmail}</Text>
+                    {/* <Tag color='green'>{admin.count}</Tag> */}
+                  </div>
+                ))
+              ) : (
+                <Text type='secondary'>No data available</Text>
+              )}
             </Card>
           </Col>
         </Row>
+      )}
+
+      {/* Show message if no logs */}
+      {!isLoading && logs.length === 0 && (
+        <Alert
+          message='No audit logs found'
+          description='No audit logs match your current filters. Try adjusting your search criteria.'
+          type='info'
+          style={{ marginTop: 16 }}
+        />
       )}
     </div>
   );

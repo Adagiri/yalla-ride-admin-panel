@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   List,
-  ShowButton,
-  EditButton,
   useTable,
   FilterDropdown,
   getDefaultSortOrder,
@@ -28,7 +26,6 @@ import {
   Timeline,
   Avatar,
   Tooltip,
-  message,
   Steps,
 } from 'antd';
 import {
@@ -38,12 +35,9 @@ import {
   DollarOutlined,
   ClockCircleOutlined,
   EyeOutlined,
-  EditOutlined,
   SearchOutlined,
   FilterOutlined,
   ReloadOutlined,
-  CalendarOutlined,
-  PhoneOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   ExclamationCircleOutlined,
@@ -66,6 +60,7 @@ interface Trip {
     | 'in_progress'
     | 'completed'
     | 'cancelled';
+
   customer: {
     id: string;
     firstname: string;
@@ -75,7 +70,8 @@ interface Trip {
       fullPhone: string;
     };
   };
-  driver: {
+
+  driver?: {
     id: string;
     firstname: string;
     lastname: string;
@@ -84,31 +80,42 @@ interface Trip {
       fullPhone: string;
     };
   };
+
   pickup: {
     address: string;
     coordinates?: [number, number];
   };
+
   destination: {
     address: string;
     coordinates?: [number, number];
   };
+
   pricing: {
     finalAmount: number;
     baseAmount: number;
-    distanceAmount: number;
-    timeAmount: number;
-    surgeAmount: number;
+    surgeMultiplier: number;
+    breakdown: {
+      baseFare: number;
+      distanceCharge: number;
+      timeCharge: number;
+      surgeFee: number;
+      discount: number;
+    };
   };
+
   paymentMethod: 'cash' | 'card' | 'wallet';
   paymentStatus?: 'pending' | 'completed' | 'failed';
+
   requestedAt: string;
   startedAt?: string;
   completedAt?: string;
   cancelledAt?: string;
+
   timeline?: Array<{
     event: string;
     timestamp: string;
-    metadata?: any;
+    metadata?: Record<string, any>;
   }>;
 }
 
@@ -219,11 +226,11 @@ export const TripList: React.FC = () => {
           <div>
             <div>
               <Text strong>
-                {record.customer.firstname} {record.customer.lastname}
+                {record?.customer?.firstname} {record?.customer?.lastname}
               </Text>
             </div>
             <div style={{ fontSize: '12px', color: '#666' }}>
-              {record.customer.phone.fullPhone}
+              {record?.customer?.phone?.fullPhone}
             </div>
           </div>
         </Space>
@@ -390,21 +397,7 @@ export const TripList: React.FC = () => {
               onClick={() => handleViewTimeline(record)}
             />
           </Tooltip>
-          {(record.status === 'in_progress' ||
-            record.status === 'driver_assigned') && (
-            <Tooltip title='Manage Trip'>
-              <Button
-                icon={<EditOutlined />}
-                size='small'
-                onClick={() =>
-                  go({
-                    to: '/trips/edit',
-                    query: { id: record.id },
-                  })
-                }
-              />
-            </Tooltip>
-          )}
+          {/* Edit/Delete disabled intentionally for trips */}
         </Space>
       ),
     },
@@ -565,7 +558,7 @@ export const TripList: React.FC = () => {
         title={`Trip Details - ${selectedTrip?.tripNumber}`}
         open={detailsModalVisible}
         onCancel={() => setDetailsModalVisible(false)}
-        width={800}
+        width={900}
         footer={[
           <Button key='close' onClick={() => setDetailsModalVisible(false)}>
             Close
@@ -608,14 +601,14 @@ export const TripList: React.FC = () => {
                 <Card size='small' title='Customer Information'>
                   <Descriptions column={1} size='small'>
                     <Descriptions.Item label='Name'>
-                      {selectedTrip.customer.firstname}{' '}
-                      {selectedTrip.customer.lastname}
+                      {selectedTrip?.customer?.firstname}{' '}
+                      {selectedTrip?.customer?.lastname}
                     </Descriptions.Item>
                     <Descriptions.Item label='Email'>
-                      {selectedTrip.customer.email}
+                      {selectedTrip?.customer?.email}
                     </Descriptions.Item>
                     <Descriptions.Item label='Phone'>
-                      {selectedTrip.customer.phone.fullPhone}
+                      {selectedTrip?.customer?.phone?.fullPhone}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
@@ -667,26 +660,13 @@ export const TripList: React.FC = () => {
                   </Space>
                 </Card>
               </Col>
+
               <Col span={12}>
                 <Card size='small' title='Payment Information'>
                   <Descriptions column={1} size='small'>
                     <Descriptions.Item label='Total Amount'>
                       ₦{selectedTrip.pricing.finalAmount.toLocaleString()}
                     </Descriptions.Item>
-                    <Descriptions.Item label='Base Amount'>
-                      ₦{selectedTrip.pricing.baseAmount.toLocaleString()}
-                    </Descriptions.Item>
-                    <Descriptions.Item label='Distance Charge'>
-                      ₦{selectedTrip.pricing.distanceAmount.toLocaleString()}
-                    </Descriptions.Item>
-                    <Descriptions.Item label='Time Charge'>
-                      ₦{selectedTrip.pricing.timeAmount.toLocaleString()}
-                    </Descriptions.Item>
-                    {selectedTrip.pricing.surgeAmount > 0 && (
-                      <Descriptions.Item label='Surge Charge'>
-                        ₦{selectedTrip.pricing.surgeAmount.toLocaleString()}
-                      </Descriptions.Item>
-                    )}
                     <Descriptions.Item label='Payment Method'>
                       <Tag
                         color={
@@ -700,7 +680,60 @@ export const TripList: React.FC = () => {
                         {selectedTrip.paymentMethod.toUpperCase()}
                       </Tag>
                     </Descriptions.Item>
+                    {selectedTrip.paymentStatus && (
+                      <Descriptions.Item label='Payment Status'>
+                        <Badge
+                          status={
+                            selectedTrip.paymentStatus === 'completed'
+                              ? 'success'
+                              : selectedTrip.paymentStatus === 'failed'
+                              ? 'error'
+                              : 'processing'
+                          }
+                          text={selectedTrip.paymentStatus}
+                        />
+                      </Descriptions.Item>
+                    )}
+                    <Descriptions.Item label='Surge Multiplier'>
+                      ×{selectedTrip.pricing.surgeMultiplier.toFixed(2)}
+                    </Descriptions.Item>
+                    <Descriptions.Item label='Base Amount'>
+                      ₦{selectedTrip.pricing.baseAmount.toLocaleString()}
+                    </Descriptions.Item>
+                    <Descriptions.Item label='Final Amount'>
+                      ₦{selectedTrip.pricing.finalAmount.toLocaleString()}
+                    </Descriptions.Item>
                   </Descriptions>
+
+                  {/* Detailed Breakdown */}
+                  <Card
+                    size='small'
+                    style={{ marginTop: 12 }}
+                    title='Fare Breakdown'
+                  >
+                    <Descriptions column={1} size='small'>
+                      <Descriptions.Item label='Base Fare'>
+                        ₦
+                        {selectedTrip.pricing.breakdown.baseFare.toLocaleString()}
+                      </Descriptions.Item>
+                      <Descriptions.Item label='Distance Charge'>
+                        ₦
+                        {selectedTrip.pricing.breakdown.distanceCharge.toLocaleString()}
+                      </Descriptions.Item>
+                      <Descriptions.Item label='Time Charge'>
+                        ₦
+                        {selectedTrip.pricing.breakdown.timeCharge.toLocaleString()}
+                      </Descriptions.Item>
+                      <Descriptions.Item label='Surge Fee'>
+                        ₦
+                        {selectedTrip.pricing.breakdown.surgeFee.toLocaleString()}
+                      </Descriptions.Item>
+                      <Descriptions.Item label='Discount'>
+                        ₦
+                        {selectedTrip.pricing.breakdown.discount.toLocaleString()}
+                      </Descriptions.Item>
+                    </Descriptions>
+                  </Card>
                 </Card>
               </Col>
             </Row>

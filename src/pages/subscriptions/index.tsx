@@ -59,46 +59,44 @@ const { Text, Title } = Typography;
 const { Option } = Select;
 const { TabPane } = Tabs;
 
+// Fixed interfaces to match GraphQL schema
 interface SubscriptionPlan extends BaseRecord {
   id: string;
   name: string;
-  description: string;
-  amount: number;
-  currency: string;
-  duration: number;
+  type: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  price: number; // Changed from 'amount' to 'price'
+  description?: string;
   features: string[];
   isActive: boolean;
-  maxTripsPerDay?: number;
-  commissionRate: number;
-  subscribersCount?: number;
   createdAt: string;
   updatedAt: string;
 }
 
 interface DriverSubscription {
   id: string;
+  driverId: string;
+  planId: string;
   driver: {
     id: string;
     firstname: string;
     lastname: string;
     email: string;
-    phone?: {
-      fullPhone: string;
-    };
+    phone?: string; // Simplified phone structure
   };
   plan: {
     id: string;
     name: string;
-    amount: number;
-    currency: string;
-    duration: number;
+    price: number; // Changed from 'amount' to 'price'
+    type: 'DAILY' | 'WEEKLY' | 'MONTHLY';
   };
-  status: 'active' | 'expired' | 'cancelled' | 'pending';
+  status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING'; // Updated to match schema
   startDate: string;
   endDate: string;
   autoRenew: boolean;
-  remainingTrips?: number;
+  paymentReference?: string;
+  subscriptionNumber: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export const SubscriptionList: React.FC = () => {
@@ -188,17 +186,26 @@ export const SubscriptionList: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
+      case 'ACTIVE':
         return 'success';
-      case 'expired':
+      case 'EXPIRED':
         return 'warning';
-      case 'cancelled':
+      case 'CANCELLED':
         return 'error';
-      case 'pending':
+      case 'PENDING':
         return 'processing';
       default:
         return 'default';
     }
+  };
+
+  const getTypeBadge = (type: string) => {
+    const colors = {
+      DAILY: 'blue',
+      WEEKLY: 'green',
+      MONTHLY: 'purple',
+    };
+    return colors[type as keyof typeof colors] || 'default';
   };
 
   const subscriptionColumns: ColumnsType<DriverSubscription> = [
@@ -218,7 +225,7 @@ export const SubscriptionList: React.FC = () => {
             </div>
             {record.driver.phone && (
               <div style={{ fontSize: '12px', color: '#666' }}>
-                {record.driver.phone.fullPhone}
+                {record.driver.phone}
               </div>
             )}
           </div>
@@ -233,10 +240,15 @@ export const SubscriptionList: React.FC = () => {
         <div>
           <div>
             <Text strong>{record.plan.name}</Text>
+            <Tag
+              color={getTypeBadge(record.plan.type)}
+              style={{ marginLeft: 8 }}
+            >
+              {record.plan.type}
+            </Tag>
           </div>
           <div style={{ fontSize: '12px', color: '#666' }}>
-            {record.plan.currency}₦{record.plan.amount.toLocaleString()} /{' '}
-            {record.plan.duration} days
+            ₦{record.plan.price.toLocaleString()}
           </div>
         </div>
       ),
@@ -247,7 +259,7 @@ export const SubscriptionList: React.FC = () => {
       key: 'status',
       render: (status: string, record: DriverSubscription) => (
         <Space direction='vertical' size='small'>
-          <Tag color={getStatusColor(status)}>{status.toUpperCase()}</Tag>
+          <Tag color={getStatusColor(status)}>{status}</Tag>
           {record.autoRenew && <Tag color='blue'>Auto Renew</Tag>}
         </Space>
       ),
@@ -258,10 +270,10 @@ export const SubscriptionList: React.FC = () => {
             placeholder='Select status'
             allowClear
           >
-            <Option value='active'>Active</Option>
-            <Option value='expired'>Expired</Option>
-            <Option value='cancelled'>Cancelled</Option>
-            <Option value='pending'>Pending</Option>
+            <Option value='ACTIVE'>Active</Option>
+            <Option value='EXPIRED'>Expired</Option>
+            <Option value='CANCELLED'>Cancelled</Option>
+            <Option value='PENDING'>Pending</Option>
           </Select>
         </FilterDropdown>
       ),
@@ -278,13 +290,9 @@ export const SubscriptionList: React.FC = () => {
               {new Date(record.endDate).toLocaleDateString()}
             </Text>
           </div>
-          {record.remainingTrips !== undefined && (
-            <div style={{ fontSize: '12px' }}>
-              <Text type='secondary'>
-                Remaining trips: {record.remainingTrips}
-              </Text>
-            </div>
-          )}
+          <div style={{ fontSize: '12px' }}>
+            <Text type='secondary'>Ref: {record.subscriptionNumber}</Text>
+          </div>
         </Space>
       ),
       sorter: true,
@@ -299,7 +307,7 @@ export const SubscriptionList: React.FC = () => {
           <Tooltip title='View Details'>
             <ShowButton hideText size='small' recordItemId={record.id} />
           </Tooltip>
-          {(record.status === 'expired' || record.status === 'cancelled') && (
+          {(record.status === 'EXPIRED' || record.status === 'CANCELLED') && (
             <Tooltip title='Renew'>
               <Button
                 icon={<ReloadOutlined />}
@@ -308,7 +316,7 @@ export const SubscriptionList: React.FC = () => {
               />
             </Tooltip>
           )}
-          {record.status === 'active' && (
+          {record.status === 'ACTIVE' && (
             <Tooltip title='Cancel'>
               <Button
                 icon={<CloseOutlined />}
@@ -342,15 +350,20 @@ export const SubscriptionList: React.FC = () => {
           <div>
             <div>
               <Text strong>{record.name}</Text>
+              <Tag color={getTypeBadge(record.type)} style={{ marginLeft: 8 }}>
+                {record.type}
+              </Tag>
               {!record.isActive && (
                 <Tag color='red' style={{ marginLeft: 8 }}>
                   Inactive
                 </Tag>
               )}
             </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>
-              {record.description}
-            </div>
+            {record.description && (
+              <div style={{ fontSize: '12px', color: '#666' }}>
+                {record.description}
+              </div>
+            )}
           </div>
         </Space>
       ),
@@ -364,14 +377,11 @@ export const SubscriptionList: React.FC = () => {
           <div>
             <DollarOutlined />
             <Text strong style={{ marginLeft: 4 }}>
-              {record.currency}₦{record.amount.toLocaleString()}
+              ₦{record.price.toLocaleString()}
             </Text>
           </div>
           <div style={{ fontSize: '12px', color: '#666' }}>
-            Duration: {record.duration} days
-          </div>
-          <div style={{ fontSize: '12px', color: '#666' }}>
-            Commission: {record.commissionRate}%
+            {record.type.toLowerCase()} plan
           </div>
         </Space>
       ),
@@ -392,31 +402,8 @@ export const SubscriptionList: React.FC = () => {
               +{record.features.length - 3} more
             </Text>
           )}
-          {record.maxTripsPerDay && (
-            <div style={{ marginTop: 4, fontSize: '12px' }}>
-              <Text type='secondary'>
-                Max trips/day: {record.maxTripsPerDay}
-              </Text>
-            </div>
-          )}
         </div>
       ),
-    },
-    {
-      title: 'Subscribers',
-      key: 'subscribers',
-      render: (_: any, record: SubscriptionPlan) => (
-        <Space direction='vertical' size='small'>
-          <div>
-            <UserOutlined />
-            <Text style={{ marginLeft: 4 }}>
-              {record.subscribersCount || 0}
-            </Text>
-          </div>
-          <div style={{ fontSize: '12px', color: '#666' }}>subscribers</div>
-        </Space>
-      ),
-      sorter: true,
     },
     {
       title: 'Status',
@@ -466,11 +453,11 @@ export const SubscriptionList: React.FC = () => {
     const subscriptions = subscriptionTableProps.dataSource || [];
     return {
       total: subscriptions.length,
-      active: subscriptions.filter((s: any) => s.status === 'active').length,
-      expired: subscriptions.filter((s: any) => s.status === 'expired').length,
+      active: subscriptions.filter((s: any) => s.status === 'ACTIVE').length,
+      expired: subscriptions.filter((s: any) => s.status === 'EXPIRED').length,
       revenue: subscriptions
-        .filter((s: any) => s.status === 'active')
-        .reduce((sum: number, s: any) => sum + s.plan.amount, 0),
+        .filter((s: any) => s.status === 'ACTIVE')
+        .reduce((sum: number, s: any) => sum + s.plan.price, 0),
     };
   };
 
@@ -543,7 +530,7 @@ export const SubscriptionList: React.FC = () => {
               <Col span={6}>
                 <Card size='small'>
                   <Statistic
-                    title='Monthly Revenue'
+                    title='Revenue'
                     value={stats.revenue}
                     prefix='₦'
                     formatter={(value) => value?.toLocaleString()}
@@ -619,24 +606,11 @@ export const SubscriptionList: React.FC = () => {
               <Col span={6}>
                 <Card size='small'>
                   <Statistic
-                    title='Total Subscribers'
-                    value={(plansTableProps.dataSource || []).reduce(
-                      (sum: number, p: any) => sum + (p.subscribersCount || 0),
-                      0
-                    )}
-                    prefix={<UserOutlined />}
-                    valueStyle={{ color: '#1890ff' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={6}>
-                <Card size='small'>
-                  <Statistic
                     title='Avg. Plan Price'
                     value={
                       (plansTableProps.dataSource || []).length > 0
                         ? (plansTableProps.dataSource || []).reduce(
-                            (sum: number, p: any) => sum + p.amount,
+                            (sum: number, p: any) => sum + p.price,
                             0
                           ) / (plansTableProps.dataSource || []).length
                         : 0
@@ -644,6 +618,22 @@ export const SubscriptionList: React.FC = () => {
                     prefix='₦'
                     formatter={(value) => value?.toLocaleString()}
                     valueStyle={{ color: '#722ed1' }}
+                  />
+                </Card>
+              </Col>
+              <Col span={6}>
+                <Card size='small'>
+                  <Statistic
+                    title='Plan Types'
+                    value={
+                      new Set(
+                        (plansTableProps.dataSource || []).map(
+                          (p: any) => p.type
+                        )
+                      ).size
+                    }
+                    prefix={<TrophyOutlined />}
+                    valueStyle={{ color: '#13c2c2' }}
                   />
                 </Card>
               </Col>
@@ -724,28 +714,26 @@ export const SubscriptionList: React.FC = () => {
                     <Descriptions.Item label='Name'>
                       {selectedPlan.name}
                     </Descriptions.Item>
-                    <Descriptions.Item label='Description'>
-                      {selectedPlan.description}
+                    <Descriptions.Item label='Type'>
+                      <Tag color={getTypeBadge(selectedPlan.type)}>
+                        {selectedPlan.type}
+                      </Tag>
                     </Descriptions.Item>
-                    <Descriptions.Item label='Price'>
-                      {selectedPlan.currency}₦
-                      {selectedPlan.amount.toLocaleString()}
-                    </Descriptions.Item>
-                    <Descriptions.Item label='Duration'>
-                      {selectedPlan.duration} days
-                    </Descriptions.Item>
-                    <Descriptions.Item label='Commission Rate'>
-                      {selectedPlan.commissionRate}%
-                    </Descriptions.Item>
-                    {selectedPlan.maxTripsPerDay && (
-                      <Descriptions.Item label='Max Trips/Day'>
-                        {selectedPlan.maxTripsPerDay}
+                    {selectedPlan.description && (
+                      <Descriptions.Item label='Description'>
+                        {selectedPlan.description}
                       </Descriptions.Item>
                     )}
+                    <Descriptions.Item label='Price'>
+                      ₦{selectedPlan.price.toLocaleString()}
+                    </Descriptions.Item>
                     <Descriptions.Item label='Status'>
                       <Tag color={selectedPlan.isActive ? 'green' : 'red'}>
                         {selectedPlan.isActive ? 'Active' : 'Inactive'}
                       </Tag>
+                    </Descriptions.Item>
+                    <Descriptions.Item label='Created'>
+                      {new Date(selectedPlan.createdAt).toLocaleDateString()}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
@@ -762,42 +750,6 @@ export const SubscriptionList: React.FC = () => {
                       </div>
                     ))}
                   </Space>
-                </Card>
-              </Col>
-            </Row>
-
-            <Row gutter={16} style={{ marginTop: 16 }}>
-              <Col span={24}>
-                <Card size='small' title='Statistics'>
-                  <Row gutter={16}>
-                    <Col span={8}>
-                      <Statistic
-                        title='Current Subscribers'
-                        value={selectedPlan.subscribersCount || 0}
-                        prefix={<UserOutlined />}
-                      />
-                    </Col>
-                    <Col span={8}>
-                      <Statistic
-                        title='Monthly Revenue'
-                        value={
-                          (selectedPlan.subscribersCount || 0) *
-                          selectedPlan.amount
-                        }
-                        prefix='₦'
-                        formatter={(value) => value?.toLocaleString()}
-                      />
-                    </Col>
-                    <Col span={8}>
-                      <Statistic
-                        title='Created'
-                        value={new Date(
-                          selectedPlan.createdAt
-                        ).toLocaleDateString()}
-                        prefix={<CalendarOutlined />}
-                      />
-                    </Col>
-                  </Row>
                 </Card>
               </Col>
             </Row>
@@ -819,7 +771,6 @@ export const SubscriptionList: React.FC = () => {
             initialValues={{
               planId: selectedSubscription.plan.id,
               autoRenew: selectedSubscription.autoRenew,
-              duration: selectedSubscription.plan.duration,
             }}
           >
             <Alert
@@ -833,7 +784,8 @@ export const SubscriptionList: React.FC = () => {
               <Select disabled>
                 <Option value={selectedSubscription.plan.id}>
                   {selectedSubscription.plan.name} - ₦
-                  {selectedSubscription.plan.amount.toLocaleString()}
+                  {selectedSubscription.plan.price.toLocaleString()} (
+                  {selectedSubscription.plan.type})
                 </Option>
               </Select>
             </Form.Item>

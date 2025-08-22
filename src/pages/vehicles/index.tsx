@@ -348,12 +348,7 @@ export const VehicleList: React.FC = () => {
         }
         headerButtons={() => (
           <Space>
-            <CreateButton
-              icon={<PlusOutlined />}
-              onClick={() => go({ to: '/vehicles/create' })}
-            >
-              Add Vehicle
-            </CreateButton>
+
             <Button
               icon={<ReloadOutlined />}
               onClick={() => window.location.reload()}

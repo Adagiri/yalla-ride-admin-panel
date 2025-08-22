@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 import {
   List,
-  EditButton,
-  ShowButton,
-  DeleteButton,
-  CreateButton,
   useTable,
   FilterDropdown,
   getDefaultSortOrder,
@@ -36,11 +32,6 @@ import {
   UserOutlined,
   CarOutlined,
   EyeOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  SearchOutlined,
-  FilterOutlined,
   ReloadOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -87,11 +78,8 @@ export const DriverList: React.FC = () => {
   const go = useGo();
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [statusModalVisible, setStatusModalVisible] = useState(false);
-  const [selectedDriverForStatus, setSelectedDriverForStatus] =
-    useState<Driver | null>(null);
 
-  const { tableProps, sorters, filters, searchFormProps } = useTable({
+  const { tableProps, sorters, searchFormProps } = useTable({
     resource: 'drivers',
     initialSorter: [
       {
@@ -114,22 +102,6 @@ export const DriverList: React.FC = () => {
   const handleViewDriver = (driver: Driver) => {
     setSelectedDriver(driver);
     setDrawerVisible(true);
-  };
-
-  const handleStatusChange = (driver: Driver) => {
-    setSelectedDriverForStatus(driver);
-    setStatusModalVisible(true);
-  };
-
-  const updateDriverStatus = async (values: any) => {
-    try {
-      // Call your update driver status mutation here
-      message.success('Driver status updated successfully');
-      setStatusModalVisible(false);
-      // Refresh table data
-    } catch (error) {
-      message.error('Failed to update driver status');
-    }
   };
 
   const columns = [
@@ -291,7 +263,7 @@ export const DriverList: React.FC = () => {
       title: 'Actions',
       key: 'actions',
       fixed: 'right',
-      width: 200,
+      width: 100,
       render: (_: any, record: Driver) => (
         <Space>
           <Tooltip title='View Details'>
@@ -299,42 +271,6 @@ export const DriverList: React.FC = () => {
               icon={<EyeOutlined />}
               size='small'
               onClick={() => handleViewDriver(record)}
-            />
-          </Tooltip>
-          <Tooltip title='Edit Driver'>
-            <Button
-              icon={<EditOutlined />}
-              size='small'
-              onClick={() =>
-                go({
-                  to: '/drivers/edit',
-                  query: { id: record.id },
-                })
-              }
-            />
-          </Tooltip>
-          <Tooltip title='Change Status'>
-            <Button
-              icon={<EnvironmentOutlined />}
-              size='small'
-              onClick={() => handleStatusChange(record)}
-            />
-          </Tooltip>
-          <Tooltip title='Delete Driver'>
-            <Button
-              icon={<DeleteOutlined />}
-              size='small'
-              danger
-              onClick={() => {
-                Modal.confirm({
-                  title: 'Delete Driver',
-                  content: 'Are you sure you want to delete this driver?',
-                  onOk: () => {
-                    // Handle delete
-                    message.success('Driver deleted successfully');
-                  },
-                });
-              }}
             />
           </Tooltip>
         </Space>
@@ -348,12 +284,14 @@ export const DriverList: React.FC = () => {
         breadcrumb={false}
         headerButtons={() => (
           <Space>
-            <CreateButton
-              icon={<PlusOutlined />}
-              onClick={() => go({ to: '/drivers/create' })}
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => {
+                tableProps?.onChange?.({}, {}, {}, {}); // trigger refresh
+              }}
             >
-              Add Driver
-            </CreateButton>
+              Refresh
+            </Button>
           </Space>
         )}
         title={
@@ -424,7 +362,7 @@ export const DriverList: React.FC = () => {
             <Form.Item name='search'>
               <Input
                 placeholder='Search drivers by name, email, or phone'
-                prefix={<SearchOutlined />}
+                prefix={<EnvironmentOutlined />}
                 style={{ width: 300 }}
               />
             </Form.Item>
@@ -435,7 +373,7 @@ export const DriverList: React.FC = () => {
             </Form.Item>
             <Form.Item>
               <Button
-                icon={<FilterOutlined />}
+                icon={<EnvironmentOutlined />}
                 onClick={() => {
                   // Reset filters
                 }}
@@ -469,24 +407,6 @@ export const DriverList: React.FC = () => {
         size='large'
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        extra={
-          selectedDriver && (
-            <Space>
-              <Button
-                icon={<EditOutlined />}
-                onClick={() => {
-                  go({
-                    to: '/drivers/edit',
-                    query: { id: selectedDriver.id },
-                  });
-                  setDrawerVisible(false);
-                }}
-              >
-                Edit
-              </Button>
-            </Space>
-          )
-        }
       >
         {selectedDriver && (
           <Space direction='vertical' style={{ width: '100%' }} size='large'>
@@ -640,50 +560,6 @@ export const DriverList: React.FC = () => {
           </Space>
         )}
       </Drawer>
-
-      {/* Status Update Modal */}
-      <Modal
-        title='Update Driver Status'
-        open={statusModalVisible}
-        onCancel={() => setStatusModalVisible(false)}
-        footer={null}
-      >
-        {selectedDriverForStatus && (
-          <Form
-            layout='vertical'
-            onFinish={updateDriverStatus}
-            initialValues={{
-              isOnline: selectedDriverForStatus.isOnline,
-              isAvailable: selectedDriverForStatus.isAvailable,
-            }}
-          >
-            <Form.Item
-              name='isOnline'
-              label='Online Status'
-              valuePropName='checked'
-            >
-              <Switch checkedChildren='Online' unCheckedChildren='Offline' />
-            </Form.Item>
-            <Form.Item
-              name='isAvailable'
-              label='Availability'
-              valuePropName='checked'
-            >
-              <Switch checkedChildren='Available' unCheckedChildren='Busy' />
-            </Form.Item>
-            <Form.Item>
-              <Space>
-                <Button type='primary' htmlType='submit'>
-                  Update Status
-                </Button>
-                <Button onClick={() => setStatusModalVisible(false)}>
-                  Cancel
-                </Button>
-              </Space>
-            </Form.Item>
-          </Form>
-        )}
-      </Modal>
     </>
   );
 };
