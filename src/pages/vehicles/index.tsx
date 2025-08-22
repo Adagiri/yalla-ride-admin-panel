@@ -55,6 +55,7 @@ import {
   MessageOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
+import { ColumnsType } from 'antd/es/table';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -100,7 +101,7 @@ export const VehicleList: React.FC = () => {
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [inspectionModalVisible, setInspectionModalVisible] = useState(false);
 
-  const { tableProps, sorters, filters, searchFormProps } = useTable({
+  const { tableProps, sorters, filters, searchFormProps } = useTable<Vehicle>({
     resource: 'vehicles',
     initialSorter: [
       {
@@ -156,7 +157,7 @@ export const VehicleList: React.FC = () => {
     }
   };
 
-  const vehicleColumns = [
+  const vehicleColumns: ColumnsType<Vehicle> = [
     {
       title: 'Vehicle',
       key: 'vehicle',
@@ -423,7 +424,7 @@ export const VehicleList: React.FC = () => {
         </Card>
 
         {/* Vehicles Table */}
-        <Table
+        <Table<Vehicle>
           {...tableProps}
           columns={vehicleColumns}
           rowKey='id'

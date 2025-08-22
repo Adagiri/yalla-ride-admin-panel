@@ -8,7 +8,6 @@ import {
   useTable,
   FilterDropdown,
   getDefaultSortOrder,
-  Title,
 } from '@refinedev/antd';
 import { useGo } from '@refinedev/core';
 import {
@@ -58,6 +57,9 @@ import {
   UploadOutlined,
 } from '@ant-design/icons';
 import { Option } from 'antd/es/mentions';
+
+const { Title, Text } = Typography;
+const { TextArea } = Input;
 
 export const NotificationList: React.FC = () => {
   const { tableProps, searchFormProps } = useTable({

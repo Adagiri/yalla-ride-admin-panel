@@ -35,6 +35,7 @@ import {
   Alert,
   Timeline,
   Transfer,
+  Spin,
 } from 'antd';
 import {
   UserOutlined,
@@ -615,7 +616,6 @@ export const AdminCreate: React.FC = () => {
   );
 };
 
-
 export const AdminEdit: React.FC = () => {
   const go = useGo();
   const [selectedPermissions, setSelectedPermissions] = useState<TransferKey[]>(
@@ -629,7 +629,9 @@ export const AdminEdit: React.FC = () => {
       redirect: 'list',
     });
 
-  const { data, isLoading, isError } = queryResult;
+  const data = queryResult?.data;
+  const isLoading = queryResult?.isLoading ?? false;
+  const isError = queryResult?.isError ?? false;
   const adminData = data?.data;
 
   // Available permissions

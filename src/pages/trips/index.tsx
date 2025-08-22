@@ -43,6 +43,7 @@ import {
   ExclamationCircleOutlined,
   PlayCircleOutlined,
 } from '@ant-design/icons';
+import { ColumnsType } from 'antd/es/table';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -125,7 +126,7 @@ export const TripList: React.FC = () => {
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [timelineModalVisible, setTimelineModalVisible] = useState(false);
 
-  const { tableProps, sorters, filters, searchFormProps } = useTable({
+  const { tableProps, sorters, filters, searchFormProps } = useTable<Trip>({
     resource: 'trips',
     initialSorter: [
       {
@@ -202,7 +203,7 @@ export const TripList: React.FC = () => {
     return statusOrder.indexOf(trip.status);
   };
 
-  const columns = [
+  const columns: ColumnsType<Trip> = [
     {
       title: 'Trip #',
       dataIndex: 'tripNumber',

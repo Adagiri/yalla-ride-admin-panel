@@ -1,4 +1,4 @@
-import { DataProvider } from '@refinedev/core';
+import { BaseRecord, DataProvider, DeleteOneParams, DeleteOneResponse } from '@refinedev/core';
 import { Client, gql } from '@urql/core';
 
 const GET_TRIPS = gql`
@@ -709,7 +709,7 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       if (filters && filters.length > 0) {
         const filter: any = {};
         filters.forEach((f) => {
-          if (f.field && f.value !== undefined) {
+          if ('field' in f && f.field && f.value !== undefined) {
             filter[f.field] = f.value;
           }
         });
@@ -929,7 +929,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
     }
   },
 
-  deleteOne: async ({ resource, id }) => {
+  deleteOne: async <TData extends BaseRecord = BaseRecord, TVariables = {}>({
+    resource,
+    id,
+  }: DeleteOneParams<TVariables>): Promise<DeleteOneResponse<TData>> => {
     try {
       let mutation;
 
@@ -951,14 +954,13 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       return {
-        data: { id },
+        data: { id } as TData,
       };
     } catch (error: any) {
       console.error(`Error deleting ${resource} with id ${id}:`, error);
       throw error;
     }
   },
-
   getApiUrl: () => {
     return import.meta.env.VITE_API_URL || 'http://localhost:8000/graphql';
   },
@@ -967,7 +969,7 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
   custom: async ({ url, method, headers, meta }) => {
     if (url === 'dashboard-metrics') {
       try {
-        const result = await client.query(GET_DASHBOARD_METRICS).toPromise();
+        const result = await client.query(GET_DASHBOARD_METRICS, {}).toPromise();
 
         if (result.error) {
           throw new Error(result.error.message);

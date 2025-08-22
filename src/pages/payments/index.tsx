@@ -51,6 +51,7 @@ import {
   MoneyCollectOutlined,
   TrophyOutlined,
 } from '@ant-design/icons';
+import { ColumnsType } from 'antd/es/table';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -114,7 +115,7 @@ export const PaymentList: React.FC = () => {
   const [refundModalVisible, setRefundModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('payments');
 
-  const { tableProps, sorters, filters, searchFormProps } = useTable({
+  const { tableProps, sorters, filters, searchFormProps } = useTable<Payment>({
     resource: 'payments',
     initialSorter: [
       {
@@ -215,7 +216,7 @@ export const PaymentList: React.FC = () => {
     }
   };
 
-  const columns = [
+  const columns: ColumnsType<Payment> = [
     {
       title: 'Payment ID',
       key: 'paymentId',
@@ -536,7 +537,7 @@ export const PaymentList: React.FC = () => {
             </Card>
 
             {/* Payments Table */}
-            <Table
+            <Table<Payment>
               {...tableProps}
               columns={columns}
               rowKey='id'

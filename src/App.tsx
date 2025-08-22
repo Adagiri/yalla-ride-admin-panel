@@ -142,8 +142,11 @@ const authProvider: AuthBindings = {
           const graphQLError = result.error.graphQLErrors[0];
 
           // Check for detailed message in extensions
-          if (graphQLError.extensions?.details) {
-            errorMessage = graphQLError.extensions.details as string;
+          if (
+            graphQLError.extensions?.details &&
+            typeof graphQLError.extensions.details === 'string'
+          ) {
+            errorMessage = graphQLError.extensions.details;
           } else if (graphQLError.message) {
             errorMessage = graphQLError.message;
           }
@@ -223,7 +226,7 @@ const authProvider: AuthBindings = {
           }
         `;
 
-        const result = await client.mutation(mutation).toPromise();
+        const result = await client.mutation(mutation, {}).toPromise();
 
         if (result.error) {
           console.error('Logout error:', result.error);

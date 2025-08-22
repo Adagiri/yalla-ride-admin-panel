@@ -51,6 +51,7 @@ import {
   WarningOutlined,
   StarOutlined,
 } from '@ant-design/icons';
+import { ColumnsType } from 'antd/es/table';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -58,14 +59,14 @@ const { TabPane } = Tabs;
 
 interface Customer {
   id: string;
+  isEmailVerified: boolean;
+  isPhoneVerified: boolean;
   firstname: string;
   lastname: string;
   email: string;
   phone: {
     fullPhone: string;
   };
-  isEmailVerified: boolean;
-  isPhoneVerified: boolean;
   profilePhotoSet: boolean;
   profilePhoto?: string;
   personalInfoSet: boolean;
@@ -95,7 +96,7 @@ export const CustomerList: React.FC = () => {
   const [selectedCustomerForAction, setSelectedCustomerForAction] =
     useState<Customer | null>(null);
 
-  const { tableProps, sorters, filters, searchFormProps } = useTable({
+  const { tableProps, sorters, searchFormProps } = useTable<Customer>({
     resource: 'customers',
     initialSorter: [
       {
@@ -148,7 +149,7 @@ export const CustomerList: React.FC = () => {
     return { verified, total, percentage: (verified / total) * 100 };
   };
 
-  const columns = [
+  const columns: ColumnsType<Customer> = [
     {
       title: 'Customer',
       key: 'customer',
@@ -478,7 +479,7 @@ export const CustomerList: React.FC = () => {
         </Card>
 
         {/* Customers Table */}
-        <Table
+        <Table<Customer>
           {...tableProps}
           columns={columns}
           rowKey='id'

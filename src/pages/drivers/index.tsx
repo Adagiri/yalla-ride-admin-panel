@@ -41,6 +41,7 @@ import {
   MailOutlined,
   EnvironmentOutlined,
 } from '@ant-design/icons';
+import { ColumnsType } from 'antd/es/table';
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -79,7 +80,7 @@ export const DriverList: React.FC = () => {
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
 
-  const { tableProps, sorters, searchFormProps } = useTable({
+  const { tableProps, sorters, searchFormProps } = useTable<Driver>({
     resource: 'drivers',
     initialSorter: [
       {
@@ -104,7 +105,7 @@ export const DriverList: React.FC = () => {
     setDrawerVisible(true);
   };
 
-  const columns = [
+  const columns: ColumnsType<Driver> = [
     {
       title: 'Driver',
       key: 'driver',
@@ -287,7 +288,19 @@ export const DriverList: React.FC = () => {
             <Button
               icon={<ReloadOutlined />}
               onClick={() => {
-                tableProps?.onChange?.({}, {}, {}, {}); // trigger refresh
+                tableProps?.onChange?.(
+                  tableProps.pagination || {
+                    current: 1,
+                    pageSize: 10,
+                    total: 0,
+                  },
+                  {},
+                  {},
+                  {
+                    currentDataSource: [...(tableProps.dataSource || [])],
+                    action: 'paginate',
+                  }
+                );
               }}
             >
               Refresh
@@ -385,7 +398,7 @@ export const DriverList: React.FC = () => {
         </Card>
 
         {/* Drivers Table */}
-        <Table
+        <Table<Driver>
           {...tableProps}
           columns={columns}
           rowKey='id'

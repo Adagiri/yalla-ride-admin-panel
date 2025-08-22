@@ -115,7 +115,7 @@ export const SubscriptionList: React.FC = () => {
     tableProps: subscriptionTableProps,
     sorters: subscriptionSorters,
     searchFormProps: subscriptionSearchProps,
-  } = useTable({
+  } = useTable<DriverSubscription>({
     resource: 'subscriptions',
     initialSorter: [
       {
@@ -140,7 +140,7 @@ export const SubscriptionList: React.FC = () => {
     tableProps: plansTableProps,
     sorters: plansSorters,
     searchFormProps: plansSearchProps,
-  } = useTable({
+  } = useTable<SubscriptionPlan>({
     resource: 'subscription-plans',
     initialSorter: [
       {
@@ -341,7 +341,7 @@ export const SubscriptionList: React.FC = () => {
     },
   ];
 
-  const planColumns = [
+  const planColumns:ColumnsType<SubscriptionPlan> = [
     {
       title: 'Plan',
       key: 'plan',
@@ -562,7 +562,7 @@ export const SubscriptionList: React.FC = () => {
             </Card>
 
             {/* Subscriptions Table */}
-            <Table
+            <Table<DriverSubscription>
               {...subscriptionTableProps}
               columns={subscriptionColumns}
               rowKey='id'
@@ -661,7 +661,7 @@ export const SubscriptionList: React.FC = () => {
             </Card>
 
             {/* Plans Table */}
-            <Table
+            <Table<SubscriptionPlan>
               {...plansTableProps}
               columns={planColumns}
               rowKey='id'
