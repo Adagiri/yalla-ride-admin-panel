@@ -960,7 +960,7 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
   },
 
   getApiUrl: () => {
-    return 'http://localhost:8000/graphql';
+    return import.meta.env.VITE_API_URL || 'http://localhost:8000/graphql';
   },
 
   // Custom method for special operations
@@ -995,6 +995,28 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         };
       } catch (error: any) {
         console.error('Error fetching audit stats:', error);
+        throw error;
+      }
+    }
+
+    // ADD THIS NEW CASE - This was missing!
+    if (url === 'audit-logs') {
+      try {
+        const result = await client
+          .query(GET_AUDIT_LOGS, {
+            filters: meta?.query || {},
+          })
+          .toPromise();
+
+        if (result.error) {
+          throw new Error(result.error.message);
+        }
+
+        return {
+          data: result.data?.getAuditLogs,
+        };
+      } catch (error: any) {
+        console.error('Error fetching audit logs:', error);
         throw error;
       }
     }

@@ -80,11 +80,8 @@ import { AdminLogin } from './pages/auth/AdminLogin';
 import { AdminForgotPassword } from './pages/auth/AdminForgotPassword';
 import { AdminResetPassword } from './pages/auth/AdminResetPassword';
 
-// GraphQL client configuration
-export const API_URL = 'http://localhost:8000/graphql';
-
 export const client = new Client({
-  url: API_URL,
+  url: import.meta.env.VITE_API_URL || 'http://localhost:8000/graphql',
   exchanges: [fetchExchange],
   fetchOptions: () => {
     return {
@@ -137,13 +134,16 @@ const authProvider: AuthBindings = {
       if (result.error) {
         // Extract the detailed error message from GraphQL errors
         let errorMessage = 'Login failed';
-        
-        if (result.error.graphQLErrors && result.error.graphQLErrors.length > 0) {
+
+        if (
+          result.error.graphQLErrors &&
+          result.error.graphQLErrors.length > 0
+        ) {
           const graphQLError = result.error.graphQLErrors[0];
-          
+
           // Check for detailed message in extensions
           if (graphQLError.extensions?.details) {
-            errorMessage = graphQLError.extensions.details;
+            errorMessage = graphQLError.extensions.details as string;
           } else if (graphQLError.message) {
             errorMessage = graphQLError.message;
           }
@@ -152,7 +152,7 @@ const authProvider: AuthBindings = {
         }
 
         console.error('Login error:', errorMessage);
-        
+
         return {
           success: false,
           error: {
@@ -180,7 +180,8 @@ const authProvider: AuthBindings = {
           success: false,
           error: {
             name: 'Account Inactive',
-            message: 'Your admin account has been deactivated. Please contact support.',
+            message:
+              'Your admin account has been deactivated. Please contact support.',
           },
         };
       }
@@ -196,12 +197,13 @@ const authProvider: AuthBindings = {
       };
     } catch (error: any) {
       console.error('Unexpected error during login:', error);
-      
+
       return {
         success: false,
         error: {
           name: 'Login Error',
-          message: error.message || 'An unexpected error occurred. Please try again.',
+          message:
+            error.message || 'An unexpected error occurred. Please try again.',
         },
       };
     }
@@ -220,9 +222,9 @@ const authProvider: AuthBindings = {
             }
           }
         `;
-        
+
         const result = await client.mutation(mutation).toPromise();
-        
+
         if (result.error) {
           console.error('Logout error:', result.error);
         }
