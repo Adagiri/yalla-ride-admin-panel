@@ -33,6 +33,7 @@ import {
   BellOutlined,
   SettingOutlined,
   AuditOutlined,
+  CustomerServiceOutlined,
 } from '@ant-design/icons';
 
 // Import pages
@@ -79,6 +80,7 @@ import { AuditLogs } from './pages/audit';
 import { AdminLogin } from './pages/auth/AdminLogin';
 import { AdminForgotPassword } from './pages/auth/AdminForgotPassword';
 import { AdminResetPassword } from './pages/auth/AdminResetPassword';
+import { SupportTicketList } from './pages/support';
 
 export const client = new Client({
   url: import.meta.env.VITE_API_URL || 'http://localhost:8000/graphql',
@@ -493,6 +495,16 @@ function App() {
                     icon: <AuditOutlined />,
                   },
                 },
+
+                {
+                  name: 'support',
+                  list: '/support',
+                  meta: {
+                    label: 'Support',
+                    icon: <CustomerServiceOutlined />,
+                  },
+                },
+                
                 {
                   name: 'settings',
                   list: '/settings',
@@ -600,6 +612,10 @@ function App() {
 
                   {/* Audit logs route */}
                   <Route path='/audit-logs' element={<AuditLogs />} />
+
+                  <Route path='/support'>
+                    <Route index element={<SupportTicketList />} />
+                  </Route>
 
                   {/* Settings route */}
                   <Route path='/settings' element={<SystemSettings />} />
