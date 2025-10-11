@@ -65,3 +65,23 @@ export interface SystemSettings {
     twoFactorEnabled: boolean;
   };
 }
+
+
+export interface Location {
+  id: string;
+  name: string;
+  description?: string;
+  address?: string;
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  boundary?: {
+    type: "Polygon";
+    coordinates: [[[number, number]]];
+  };
+  locationType: "estate" | "landmark" | "general";
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

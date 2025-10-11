@@ -23,6 +23,7 @@
     ]
   },
   "dependencies": {
+    "@react-google-maps/api": "^2.20.7",
     "@refinedev/antd": "^5.46.3",
     "@refinedev/cli": "^2.16.47",
     "@refinedev/core": "^4.57.11",
@@ -32,6 +33,7 @@
     "@uiw/react-md-editor": "^3.19.5",
     "@urql/core": "^5.0.6",
     "antd": "^5.17.0",
+    "framer-motion": "^12.23.22",
     "graphql-ws": "^5.9.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",

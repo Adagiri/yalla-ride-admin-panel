@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   List,
   useTable,
   FilterDropdown,
   getDefaultSortOrder,
-} from '@refinedev/antd';
-import { useGo } from '@refinedev/core';
+} from "@refinedev/antd";
+import { useGo } from "@refinedev/core";
 import {
   Table,
   Space,
@@ -27,7 +27,7 @@ import {
   Avatar,
   Tooltip,
   Steps,
-} from 'antd';
+} from "antd";
 import {
   EnvironmentOutlined,
   CarOutlined,
@@ -42,8 +42,8 @@ import {
   CloseCircleOutlined,
   ExclamationCircleOutlined,
   PlayCircleOutlined,
-} from '@ant-design/icons';
-import { ColumnsType } from 'antd/es/table';
+} from "@ant-design/icons";
+import { ColumnsType } from "antd/es/table";
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -54,13 +54,13 @@ interface Trip {
   id: string;
   tripNumber: string;
   status:
-    | 'searching'
-    | 'drivers_found'
-    | 'driver_assigned'
-    | 'driver_arrived'
-    | 'in_progress'
-    | 'completed'
-    | 'cancelled';
+    | "searching"
+    | "drivers_found"
+    | "driver_assigned"
+    | "driver_arrived"
+    | "in_progress"
+    | "completed"
+    | "cancelled";
 
   customer: {
     id: string;
@@ -105,8 +105,8 @@ interface Trip {
     };
   };
 
-  paymentMethod: 'cash' | 'card' | 'wallet';
-  paymentStatus?: 'pending' | 'completed' | 'failed';
+  paymentMethod: "cash" | "card" | "wallet";
+  paymentStatus?: "pending" | "completed" | "failed";
 
   requestedAt: string;
   startedAt?: string;
@@ -127,18 +127,18 @@ export const TripList: React.FC = () => {
   const [timelineModalVisible, setTimelineModalVisible] = useState(false);
 
   const { tableProps, sorters, filters, searchFormProps } = useTable<Trip>({
-    resource: 'trips',
+    resource: "trips",
     initialSorter: [
       {
-        field: 'requestedAt',
-        order: 'desc',
+        field: "requestedAt",
+        order: "desc",
       },
     ],
     onSearch: (params: any) => {
       return [
         {
-          field: 'search',
-          operator: 'contains',
+          field: "search",
+          operator: "contains",
           value: params.search,
         },
       ];
@@ -148,34 +148,34 @@ export const TripList: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'success';
-      case 'in_progress':
-        return 'processing';
-      case 'driver_assigned':
-      case 'driver_arrived':
-        return 'warning';
-      case 'cancelled':
-        return 'error';
-      case 'searching':
-        return 'default';
+      case "completed":
+        return "success";
+      case "in_progress":
+        return "processing";
+      case "driver_assigned":
+      case "driver_arrived":
+        return "warning";
+      case "cancelled":
+        return "error";
+      case "searching":
+        return "default";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircleOutlined />;
-      case 'in_progress':
+      case "in_progress":
         return <PlayCircleOutlined />;
-      case 'driver_assigned':
-      case 'driver_arrived':
+      case "driver_assigned":
+      case "driver_arrived":
         return <CarOutlined />;
-      case 'cancelled':
+      case "cancelled":
         return <CloseCircleOutlined />;
-      case 'searching':
+      case "searching":
         return <ExclamationCircleOutlined />;
       default:
         return <ClockCircleOutlined />;
@@ -194,24 +194,24 @@ export const TripList: React.FC = () => {
 
   const getTripStepStatus = (trip: Trip) => {
     const statusOrder = [
-      'searching',
-      'driver_assigned',
-      'driver_arrived',
-      'in_progress',
-      'completed',
+      "searching",
+      "driver_assigned",
+      "driver_arrived",
+      "in_progress",
+      "completed",
     ];
     return statusOrder.indexOf(trip.status);
   };
 
   const columns: ColumnsType<Trip> = [
     {
-      title: 'Trip #',
-      dataIndex: 'tripNumber',
-      key: 'tripNumber',
+      title: "Trip #",
+      dataIndex: "tripNumber",
+      key: "tripNumber",
       render: (text: string, record: Trip) => (
-        <Space direction='vertical' size='small'>
+        <Space direction="vertical" size="small">
           <Text strong>{text}</Text>
-          <Text type='secondary' style={{ fontSize: '12px' }}>
+          <Text type="secondary" style={{ fontSize: "12px" }}>
             {new Date(record.requestedAt).toLocaleString()}
           </Text>
         </Space>
@@ -219,18 +219,18 @@ export const TripList: React.FC = () => {
       sorter: true,
     },
     {
-      title: 'Customer',
-      key: 'customer',
+      title: "Customer",
+      key: "customer",
       render: (_: any, record: Trip) => (
         <Space>
-          <Avatar icon={<UserOutlined />} size='small' />
+          <Avatar icon={<UserOutlined />} size="small" />
           <div>
             <div>
               <Text strong>
                 {record?.customer?.firstname} {record?.customer?.lastname}
               </Text>
             </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>
+            <div style={{ fontSize: "12px", color: "#666" }}>
               {record?.customer?.phone?.fullPhone}
             </div>
           </div>
@@ -238,40 +238,40 @@ export const TripList: React.FC = () => {
       ),
     },
     {
-      title: 'Driver',
-      key: 'driver',
+      title: "Driver",
+      key: "driver",
       render: (_: any, record: Trip) =>
         record.driver ? (
           <Space>
-            <Avatar icon={<CarOutlined />} size='small' />
+            <Avatar icon={<CarOutlined />} size="small" />
             <div>
               <div>
                 <Text strong>
                   {record.driver.firstname} {record.driver.lastname}
                 </Text>
               </div>
-              <div style={{ fontSize: '12px', color: '#666' }}>
+              <div style={{ fontSize: "12px", color: "#666" }}>
                 {record.driver.phone.fullPhone}
               </div>
             </div>
           </Space>
         ) : (
-          <Text type='secondary'>Not assigned</Text>
+          <Text type="secondary">Not assigned</Text>
         ),
     },
     {
-      title: 'Route',
-      key: 'route',
+      title: "Route",
+      key: "route",
       render: (_: any, record: Trip) => (
         <div style={{ maxWidth: 200 }}>
-          <div style={{ fontSize: '12px', marginBottom: 4 }}>
-            <EnvironmentOutlined style={{ color: '#52c41a' }} />
+          <div style={{ fontSize: "12px", marginBottom: 4 }}>
+            <EnvironmentOutlined style={{ color: "#52c41a" }} />
             <Text ellipsis style={{ marginLeft: 4 }}>
               {record.pickup.address}
             </Text>
           </div>
-          <div style={{ fontSize: '12px' }}>
-            <EnvironmentOutlined style={{ color: '#ff4d4f' }} />
+          <div style={{ fontSize: "12px" }}>
+            <EnvironmentOutlined style={{ color: "#ff4d4f" }} />
             <Text ellipsis style={{ marginLeft: 4 }}>
               {record.destination.address}
             </Text>
@@ -280,36 +280,36 @@ export const TripList: React.FC = () => {
       ),
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
       render: (status: string) => (
         <Tag color={getStatusColor(status)} icon={getStatusIcon(status)}>
-          {status.replace(/_/g, ' ').toUpperCase()}
+          {status.replace(/_/g, " ").toUpperCase()}
         </Tag>
       ),
       filterDropdown: (props: any) => (
         <FilterDropdown {...props}>
           <Select
             style={{ minWidth: 200 }}
-            placeholder='Select status'
+            placeholder="Select status"
             allowClear
           >
-            <Option value='searching'>Searching</Option>
-            <Option value='driver_assigned'>Driver Assigned</Option>
-            <Option value='driver_arrived'>Driver Arrived</Option>
-            <Option value='in_progress'>In Progress</Option>
-            <Option value='completed'>Completed</Option>
-            <Option value='cancelled'>Cancelled</Option>
+            <Option value="searching">Searching</Option>
+            <Option value="driver_assigned">Driver Assigned</Option>
+            <Option value="driver_arrived">Driver Arrived</Option>
+            <Option value="in_progress">In Progress</Option>
+            <Option value="completed">Completed</Option>
+            <Option value="cancelled">Cancelled</Option>
           </Select>
         </FilterDropdown>
       ),
     },
     {
-      title: 'Payment',
-      key: 'payment',
+      title: "Payment",
+      key: "payment",
       render: (_: any, record: Trip) => (
-        <Space direction='vertical' size='small'>
+        <Space direction="vertical" size="small">
           <div>
             <DollarOutlined />
             <Text style={{ marginLeft: 4 }}>
@@ -319,11 +319,11 @@ export const TripList: React.FC = () => {
           <div>
             <Tag
               color={
-                record.paymentMethod === 'cash'
-                  ? 'orange'
-                  : record.paymentMethod === 'card'
-                  ? 'blue'
-                  : 'green'
+                record.paymentMethod === "cash"
+                  ? "orange"
+                  : record.paymentMethod === "card"
+                  ? "blue"
+                  : "green"
               }
             >
               {record.paymentMethod.toUpperCase()}
@@ -333,11 +333,11 @@ export const TripList: React.FC = () => {
             <div>
               <Badge
                 status={
-                  record.paymentStatus === 'completed'
-                    ? 'success'
-                    : record.paymentStatus === 'failed'
-                    ? 'error'
-                    : 'processing'
+                  record.paymentStatus === "completed"
+                    ? "success"
+                    : record.paymentStatus === "failed"
+                    ? "error"
+                    : "processing"
                 }
                 text={record.paymentStatus}
               />
@@ -348,8 +348,8 @@ export const TripList: React.FC = () => {
       sorter: true,
     },
     {
-      title: 'Duration',
-      key: 'duration',
+      title: "Duration",
+      key: "duration",
       render: (_: any, record: Trip) => {
         if (record.completedAt && record.startedAt) {
           const duration =
@@ -374,27 +374,27 @@ export const TripList: React.FC = () => {
             </Space>
           );
         }
-        return <Text type='secondary'>-</Text>;
+        return <Text type="secondary">-</Text>;
       },
     },
     {
-      title: 'Actions',
-      key: 'actions',
-      fixed: 'right',
+      title: "Actions",
+      key: "actions",
+      fixed: "right",
       width: 150,
       render: (_: any, record: Trip) => (
         <Space>
-          <Tooltip title='View Details'>
+          <Tooltip title="View Details">
             <Button
               icon={<EyeOutlined />}
-              size='small'
+              size="small"
               onClick={() => handleViewDetails(record)}
             />
           </Tooltip>
-          <Tooltip title='View Timeline'>
+          <Tooltip title="View Timeline">
             <Button
               icon={<ClockCircleOutlined />}
-              size='small'
+              size="small"
               onClick={() => handleViewTimeline(record)}
             />
           </Tooltip>
@@ -408,12 +408,12 @@ export const TripList: React.FC = () => {
     const data = tableProps.dataSource || [];
     return {
       total: data.length,
-      searching: data.filter((t: Trip) => t.status === 'searching').length,
+      searching: data.filter((t: Trip) => t.status === "searching").length,
       active: data.filter((t: Trip) =>
-        ['driver_assigned', 'driver_arrived', 'in_progress'].includes(t.status)
+        ["driver_assigned", "driver_arrived", "in_progress"].includes(t.status)
       ).length,
-      completed: data.filter((t: Trip) => t.status === 'completed').length,
-      cancelled: data.filter((t: Trip) => t.status === 'cancelled').length,
+      completed: data.filter((t: Trip) => t.status === "completed").length,
+      cancelled: data.filter((t: Trip) => t.status === "cancelled").length,
     };
   };
 
@@ -426,7 +426,7 @@ export const TripList: React.FC = () => {
         title={
           <div>
             <Title level={3}>Trip Management</Title>
-            <Text type='secondary'>
+            <Text type="secondary">
               Monitor all trips, track real-time status, and manage operations
             </Text>
           </div>
@@ -445,67 +445,67 @@ export const TripList: React.FC = () => {
         {/* Summary Cards */}
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={4}>
-            <Card size='small'>
+            <Card size="small">
               <Statistic
-                title='Total Trips'
+                title="Total Trips"
                 value={statusCounts.total}
                 prefix={<EnvironmentOutlined />}
               />
             </Card>
           </Col>
           <Col span={4}>
-            <Card size='small'>
+            <Card size="small">
               <Statistic
-                title='Searching'
+                title="Searching"
                 value={statusCounts.searching}
                 prefix={<ExclamationCircleOutlined />}
-                valueStyle={{ color: '#faad14' }}
+                valueStyle={{ color: "#faad14" }}
               />
             </Card>
           </Col>
           <Col span={4}>
-            <Card size='small'>
+            <Card size="small">
               <Statistic
-                title='Active'
+                title="Active"
                 value={statusCounts.active}
                 prefix={<PlayCircleOutlined />}
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ color: "#1890ff" }}
               />
             </Card>
           </Col>
           <Col span={4}>
-            <Card size='small'>
+            <Card size="small">
               <Statistic
-                title='Completed'
+                title="Completed"
                 value={statusCounts.completed}
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: '#52c41a' }}
+                valueStyle={{ color: "#52c41a" }}
               />
             </Card>
           </Col>
           <Col span={4}>
-            <Card size='small'>
+            <Card size="small">
               <Statistic
-                title='Cancelled'
+                title="Cancelled"
                 value={statusCounts.cancelled}
                 prefix={<CloseCircleOutlined />}
-                valueStyle={{ color: '#ff4d4f' }}
+                valueStyle={{ color: "#ff4d4f" }}
               />
             </Card>
           </Col>
           <Col span={4}>
-            <Card size='small'>
+            <Card size="small">
               <Statistic
-                title='Revenue Today'
+                title="Revenue Today"
                 value={(tableProps.dataSource || [])
-                  .filter((t: Trip) => t.status === 'completed')
+                  .filter((t: Trip) => t.status === "completed")
                   .reduce(
                     (sum: number, t: Trip) => sum + t.pricing.finalAmount,
                     0
                   )}
-                prefix='₦'
+                prefix="₦"
                 formatter={(value) => value?.toLocaleString()}
-                valueStyle={{ color: '#52c41a' }}
+                valueStyle={{ color: "#52c41a" }}
               />
             </Card>
           </Col>
@@ -513,22 +513,22 @@ export const TripList: React.FC = () => {
 
         {/* Search and Filters */}
         <Card style={{ marginBottom: 16 }}>
-          <Form {...searchFormProps} layout='inline'>
-            <Form.Item name='search'>
+          <Form {...searchFormProps} layout="inline">
+            <Form.Item name="search">
               <Input
-                placeholder='Search by trip number, customer, or driver'
+                placeholder="Search by trip number, customer, or driver"
                 prefix={<SearchOutlined />}
                 style={{ width: 300 }}
               />
             </Form.Item>
-            <Form.Item name='dateRange'>
+            <Form.Item name="dateRange">
               <RangePicker
-                placeholder={['Start Date', 'End Date']}
+                placeholder={["Start Date", "End Date"]}
                 style={{ width: 250 }}
               />
             </Form.Item>
             <Form.Item>
-              <Button type='primary' htmlType='submit'>
+              <Button type="primary" htmlType="submit">
                 Search
               </Button>
             </Form.Item>
@@ -542,7 +542,7 @@ export const TripList: React.FC = () => {
         <Table
           {...tableProps}
           columns={columns}
-          rowKey='id'
+          rowKey="id"
           scroll={{ x: 1400 }}
           pagination={{
             ...tableProps.pagination,
@@ -561,13 +561,13 @@ export const TripList: React.FC = () => {
         onCancel={() => setDetailsModalVisible(false)}
         width={900}
         footer={[
-          <Button key='close' onClick={() => setDetailsModalVisible(false)}>
+          <Button key="close" onClick={() => setDetailsModalVisible(false)}>
             Close
           </Button>,
           selectedTrip && (
             <Button
-              key='timeline'
-              type='primary'
+              key="timeline"
+              type="primary"
               onClick={() => {
                 setDetailsModalVisible(false);
                 handleViewTimeline(selectedTrip);
@@ -581,56 +581,56 @@ export const TripList: React.FC = () => {
         {selectedTrip && (
           <div>
             {/* Trip Progress */}
-            <Card size='small' style={{ marginBottom: 16 }}>
+            <Card size="small" style={{ marginBottom: 16 }}>
               <Steps
                 current={getTripStepStatus(selectedTrip)}
                 status={
-                  selectedTrip.status === 'cancelled' ? 'error' : 'process'
+                  selectedTrip.status === "cancelled" ? "error" : "process"
                 }
-                size='small'
+                size="small"
               >
-                <Step title='Searching' icon={<ExclamationCircleOutlined />} />
-                <Step title='Driver Assigned' icon={<CarOutlined />} />
-                <Step title='Driver Arrived' icon={<EnvironmentOutlined />} />
-                <Step title='In Progress' icon={<PlayCircleOutlined />} />
-                <Step title='Completed' icon={<CheckCircleOutlined />} />
+                <Step title="Searching" icon={<ExclamationCircleOutlined />} />
+                <Step title="Driver Assigned" icon={<CarOutlined />} />
+                <Step title="Driver Arrived" icon={<EnvironmentOutlined />} />
+                <Step title="In Progress" icon={<PlayCircleOutlined />} />
+                <Step title="Completed" icon={<CheckCircleOutlined />} />
               </Steps>
             </Card>
 
             <Row gutter={16}>
               <Col span={12}>
-                <Card size='small' title='Customer Information'>
-                  <Descriptions column={1} size='small'>
-                    <Descriptions.Item label='Name'>
-                      {selectedTrip?.customer?.firstname}{' '}
+                <Card size="small" title="Customer Information">
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="Name">
+                      {selectedTrip?.customer?.firstname}{" "}
                       {selectedTrip?.customer?.lastname}
                     </Descriptions.Item>
-                    <Descriptions.Item label='Email'>
+                    <Descriptions.Item label="Email">
                       {selectedTrip?.customer?.email}
                     </Descriptions.Item>
-                    <Descriptions.Item label='Phone'>
+                    <Descriptions.Item label="Phone">
                       {selectedTrip?.customer?.phone?.fullPhone}
                     </Descriptions.Item>
                   </Descriptions>
                 </Card>
               </Col>
               <Col span={12}>
-                <Card size='small' title='Driver Information'>
+                <Card size="small" title="Driver Information">
                   {selectedTrip.driver ? (
-                    <Descriptions column={1} size='small'>
-                      <Descriptions.Item label='Name'>
-                        {selectedTrip.driver.firstname}{' '}
+                    <Descriptions column={1} size="small">
+                      <Descriptions.Item label="Name">
+                        {selectedTrip.driver.firstname}{" "}
                         {selectedTrip.driver.lastname}
                       </Descriptions.Item>
-                      <Descriptions.Item label='Email'>
+                      <Descriptions.Item label="Email">
                         {selectedTrip.driver.email}
                       </Descriptions.Item>
-                      <Descriptions.Item label='Phone'>
+                      <Descriptions.Item label="Phone">
                         {selectedTrip.driver.phone.fullPhone}
                       </Descriptions.Item>
                     </Descriptions>
                   ) : (
-                    <Text type='secondary'>No driver assigned</Text>
+                    <Text type="secondary">No driver assigned</Text>
                   )}
                 </Card>
               </Col>
@@ -638,10 +638,10 @@ export const TripList: React.FC = () => {
 
             <Row gutter={16} style={{ marginTop: 16 }}>
               <Col span={12}>
-                <Card size='small' title='Route Information'>
-                  <Space direction='vertical' style={{ width: '100%' }}>
+                <Card size="small" title="Route Information">
+                  <Space direction="vertical" style={{ width: "100%" }}>
                     <div>
-                      <EnvironmentOutlined style={{ color: '#52c41a' }} />
+                      <EnvironmentOutlined style={{ color: "#52c41a" }} />
                       <Text strong style={{ marginLeft: 8 }}>
                         Pickup:
                       </Text>
@@ -650,7 +650,7 @@ export const TripList: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <EnvironmentOutlined style={{ color: '#ff4d4f' }} />
+                      <EnvironmentOutlined style={{ color: "#ff4d4f" }} />
                       <Text strong style={{ marginLeft: 8 }}>
                         Destination:
                       </Text>
@@ -663,73 +663,73 @@ export const TripList: React.FC = () => {
               </Col>
 
               <Col span={12}>
-                <Card size='small' title='Payment Information'>
-                  <Descriptions column={1} size='small'>
-                    <Descriptions.Item label='Total Amount'>
+                <Card size="small" title="Payment Information">
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="Total Amount">
                       ₦{selectedTrip.pricing.finalAmount.toLocaleString()}
                     </Descriptions.Item>
-                    <Descriptions.Item label='Payment Method'>
+                    <Descriptions.Item label="Payment Method">
                       <Tag
                         color={
-                          selectedTrip.paymentMethod === 'cash'
-                            ? 'orange'
-                            : selectedTrip.paymentMethod === 'card'
-                            ? 'blue'
-                            : 'green'
+                          selectedTrip.paymentMethod === "cash"
+                            ? "orange"
+                            : selectedTrip.paymentMethod === "card"
+                            ? "blue"
+                            : "green"
                         }
                       >
                         {selectedTrip.paymentMethod.toUpperCase()}
                       </Tag>
                     </Descriptions.Item>
                     {selectedTrip.paymentStatus && (
-                      <Descriptions.Item label='Payment Status'>
+                      <Descriptions.Item label="Payment Status">
                         <Badge
                           status={
-                            selectedTrip.paymentStatus === 'completed'
-                              ? 'success'
-                              : selectedTrip.paymentStatus === 'failed'
-                              ? 'error'
-                              : 'processing'
+                            selectedTrip.paymentStatus === "completed"
+                              ? "success"
+                              : selectedTrip.paymentStatus === "failed"
+                              ? "error"
+                              : "processing"
                           }
                           text={selectedTrip.paymentStatus}
                         />
                       </Descriptions.Item>
                     )}
-                    <Descriptions.Item label='Surge Multiplier'>
+                    <Descriptions.Item label="Surge Multiplier">
                       ×{selectedTrip.pricing.surgeMultiplier.toFixed(2)}
                     </Descriptions.Item>
-                    <Descriptions.Item label='Base Amount'>
+                    <Descriptions.Item label="Base Amount">
                       ₦{selectedTrip.pricing.baseAmount.toLocaleString()}
                     </Descriptions.Item>
-                    <Descriptions.Item label='Final Amount'>
+                    <Descriptions.Item label="Final Amount">
                       ₦{selectedTrip.pricing.finalAmount.toLocaleString()}
                     </Descriptions.Item>
                   </Descriptions>
 
                   {/* Detailed Breakdown */}
                   <Card
-                    size='small'
+                    size="small"
                     style={{ marginTop: 12 }}
-                    title='Fare Breakdown'
+                    title="Fare Breakdown"
                   >
-                    <Descriptions column={1} size='small'>
-                      <Descriptions.Item label='Base Fare'>
+                    <Descriptions column={1} size="small">
+                      <Descriptions.Item label="Base Fare">
                         ₦
                         {selectedTrip.pricing.breakdown.baseFare.toLocaleString()}
                       </Descriptions.Item>
-                      <Descriptions.Item label='Distance Charge'>
+                      <Descriptions.Item label="Distance Charge">
                         ₦
                         {selectedTrip.pricing.breakdown.distanceCharge.toLocaleString()}
                       </Descriptions.Item>
-                      <Descriptions.Item label='Time Charge'>
+                      <Descriptions.Item label="Time Charge">
                         ₦
                         {selectedTrip.pricing.breakdown.timeCharge.toLocaleString()}
                       </Descriptions.Item>
-                      <Descriptions.Item label='Surge Fee'>
+                      <Descriptions.Item label="Surge Fee">
                         ₦
                         {selectedTrip.pricing.breakdown.surgeFee.toLocaleString()}
                       </Descriptions.Item>
-                      <Descriptions.Item label='Discount'>
+                      <Descriptions.Item label="Discount">
                         ₦
                         {selectedTrip.pricing.breakdown.discount.toLocaleString()}
                       </Descriptions.Item>
@@ -749,17 +749,17 @@ export const TripList: React.FC = () => {
         onCancel={() => setTimelineModalVisible(false)}
         width={600}
         footer={[
-          <Button key='close' onClick={() => setTimelineModalVisible(false)}>
+          <Button key="close" onClick={() => setTimelineModalVisible(false)}>
             Close
           </Button>,
         ]}
       >
         {selectedTrip && (
           <Timeline>
-            <Timeline.Item color='blue'>
+            <Timeline.Item color="blue">
               <Text strong>Trip Requested</Text>
               <div>
-                <Text type='secondary'>
+                <Text type="secondary">
                   {new Date(selectedTrip.requestedAt).toLocaleString()}
                 </Text>
               </div>
@@ -769,26 +769,26 @@ export const TripList: React.FC = () => {
               <Timeline.Item
                 key={index}
                 color={
-                  event.event.includes('cancelled')
-                    ? 'red'
-                    : event.event.includes('completed')
-                    ? 'green'
-                    : event.event.includes('started')
-                    ? 'blue'
-                    : 'orange'
+                  event.event.includes("cancelled")
+                    ? "red"
+                    : event.event.includes("completed")
+                    ? "green"
+                    : event.event.includes("started")
+                    ? "blue"
+                    : "orange"
                 }
               >
                 <Text strong>
-                  {event.event.replace(/_/g, ' ').toUpperCase()}
+                  {event.event.replace(/_/g, " ").toUpperCase()}
                 </Text>
                 <div>
-                  <Text type='secondary'>
+                  <Text type="secondary">
                     {new Date(event.timestamp).toLocaleString()}
                   </Text>
                 </div>
                 {event.metadata && (
                   <div style={{ marginTop: 4 }}>
-                    <Text type='secondary' style={{ fontSize: '12px' }}>
+                    <Text type="secondary" style={{ fontSize: "12px" }}>
                       {JSON.stringify(event.metadata)}
                     </Text>
                   </div>
@@ -797,10 +797,10 @@ export const TripList: React.FC = () => {
             ))}
 
             {selectedTrip.startedAt && (
-              <Timeline.Item color='green'>
+              <Timeline.Item color="green">
                 <Text strong>Trip Started</Text>
                 <div>
-                  <Text type='secondary'>
+                  <Text type="secondary">
                     {new Date(selectedTrip.startedAt).toLocaleString()}
                   </Text>
                 </div>
@@ -808,10 +808,10 @@ export const TripList: React.FC = () => {
             )}
 
             {selectedTrip.completedAt && (
-              <Timeline.Item color='green'>
+              <Timeline.Item color="green">
                 <Text strong>Trip Completed</Text>
                 <div>
-                  <Text type='secondary'>
+                  <Text type="secondary">
                     {new Date(selectedTrip.completedAt).toLocaleString()}
                   </Text>
                 </div>
@@ -819,10 +819,10 @@ export const TripList: React.FC = () => {
             )}
 
             {selectedTrip.cancelledAt && (
-              <Timeline.Item color='red'>
+              <Timeline.Item color="red">
                 <Text strong>Trip Cancelled</Text>
                 <div>
-                  <Text type='secondary'>
+                  <Text type="secondary">
                     {new Date(selectedTrip.cancelledAt).toLocaleString()}
                   </Text>
                 </div>

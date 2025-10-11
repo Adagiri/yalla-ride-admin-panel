@@ -1,6 +1,12 @@
-import { BaseRecord, DataProvider, DeleteOneParams, DeleteOneResponse } from '@refinedev/core';
-import { Client, gql } from '@urql/core';
+import {
+  BaseRecord,
+  DataProvider,
+  DeleteOneParams,
+  DeleteOneResponse,
+} from "@refinedev/core";
+import { Client, gql } from "@urql/core";
 
+// Existing queries/mutations (unchanged, included for completeness)
 const GET_TRIPS = gql`
   query ListTrips(
     $pagination: PaginationInput
@@ -45,7 +51,6 @@ const GET_TRIPS = gql`
         finalAmount
         baseAmount
         surgeMultiplier
-
         breakdown {
           baseFare
           distanceCharge
@@ -99,7 +104,6 @@ const GET_TRIP = gql`
         finalAmount
         baseAmount
         surgeMultiplier
-
         breakdown {
           baseFare
           distanceCharge
@@ -279,7 +283,6 @@ const GET_CUSTOMER = gql`
   }
 `;
 
-// Vehicle Operations
 const GET_VEHICLES = gql`
   query ListVehicles(
     $pagination: PaginationInput
@@ -470,11 +473,6 @@ const GET_PAYMENTS = gql`
           lastname
         }
       }
-      # customer {
-      #   id
-      #   firstname
-      #   lastname
-      # }
       createdAt
       completedAt
     }
@@ -523,7 +521,6 @@ const GET_DASHBOARD_METRICS = gql`
   }
 `;
 
-// Admin GraphQL Operations
 const GET_ADMINS = gql`
   query GetAllAdmins($page: Int, $limit: Int) {
     getAllAdmins(page: $page, limit: $limit) {
@@ -650,7 +647,6 @@ const DEACTIVATE_ADMIN = gql`
   }
 `;
 
-// Audit Logs Operations
 const GET_AUDIT_LOGS = gql`
   query GetAuditLogs($filters: AuditLogFiltersInput) {
     getAuditLogs(filters: $filters) {
@@ -685,13 +681,195 @@ const GET_AUDIT_STATS = gql`
       }
       topAdmins {
         adminEmail
-        # count
       }
     }
   }
 `;
 
-// Updated Data Provider
+// Location Operations
+const GET_LOCATIONS = gql`
+  query ListLocations(
+    $pagination: PaginationInput
+    $filter: LocationFilter
+    $sort: LocationSort
+  ) {
+    listLocations(pagination: $pagination, filter: $filter, sort: $sort) {
+      data {
+        id
+        name
+        description
+        address
+        location {
+          type
+          coordinates
+        }
+        boundary {
+          type
+          coordinates
+        }
+        locationType
+        isActive
+        createdAt
+        updatedAt
+      }
+      paginationResult {
+        totalDocs
+        docsRetrieved
+        hasNextPage
+        hasPreviousPage
+        nextPage
+        previousPage
+      }
+    }
+  }
+`;
+
+const GET_LOCATION = gql`
+  query GetLocation($id: ID!) {
+    getLocation(id: $id) {
+      id
+      name
+      description
+      address
+      location {
+        type
+        coordinates
+      }
+      boundary {
+        type
+        coordinates
+      }
+      locationType
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const CREATE_LOCATION = gql`
+  mutation CreateLocation($input: CreateLocationInput!) {
+    createLocation(input: $input) {
+      id
+      name
+      description
+      address
+      location {
+        type
+        coordinates
+      }
+      boundary {
+        type
+        coordinates
+      }
+      locationType
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const UPDATE_LOCATION = gql`
+  mutation UpdateLocation($id: ID!, $input: UpdateLocationInput!) {
+    updateLocation(id: $id, input: $input) {
+      id
+      name
+      description
+      address
+      location {
+        type
+        coordinates
+      }
+      boundary {
+        type
+        coordinates
+      }
+      locationType
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const DELETE_LOCATION = gql`
+  mutation DeleteLocation($id: ID!) {
+    deleteLocation(id: $id)
+  }
+`;
+
+const TOGGLE_LOCATION_STATUS = gql`
+  mutation ToggleLocationStatus($id: ID!) {
+    toggleLocationStatus(id: $id) {
+      id
+      name
+      description
+      address
+      location {
+        type
+        coordinates
+      }
+      boundary {
+        type
+        coordinates
+      }
+      locationType
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const FIND_NEARBY_LOCATIONS = gql`
+  query FindNearbyLocations(
+    $longitude: Float!
+    $latitude: Float!
+    $maxDistance: Float
+    $locationType: LocationType
+  ) {
+    findNearbyLocations(
+      longitude: $longitude
+      latitude: $latitude
+      maxDistance: $maxDistance
+      locationType: $locationType
+    ) {
+      id
+      name
+      description
+      address
+      location {
+        type
+        coordinates
+      }
+      locationType
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+const FIND_LOCATIONS_BY_POINT = gql`
+  query FindLocationsByPoint($longitude: Float!, $latitude: Float!) {
+    findLocationsByPoint(longitude: $longitude, latitude: $latitude) {
+      id
+      name
+      description
+      address
+      location {
+        type
+        coordinates
+      }
+      locationType
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 export const createCustomDataProvider = (client: Client): DataProvider => ({
   getList: async ({ resource, pagination, filters, sorters }) => {
     const { current = 1, pageSize = 10 } = pagination ?? {};
@@ -705,54 +883,88 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         },
       };
 
-      // Add filters if they exist
+      // Define valid filter fields per resource
+      const validFilters: Record<string, string[]> = {
+        locations: [
+          "ids",
+          "name",
+          "address",
+          "locationType",
+          "isActive",
+          "search",
+        ],
+        trips: ["status", "customerId", "driverId"],
+        drivers: ["isOnline", "isAvailable", "paymentModel"],
+        customers: ["isEmailVerified", "isPhoneVerified"],
+        vehicles: ["brand", "modelName"],
+        subscriptions: ["status", "driverId"],
+        "subscription-plans": ["isActive"],
+        payments: ["status", "paymentMethod"],
+        "audit-logs": ["adminId", "action", "resource"],
+      };
+
+      // Transform filters
       if (filters && filters.length > 0) {
         const filter: any = {};
         filters.forEach((f) => {
-          if ('field' in f && f.field && f.value !== undefined) {
-            filter[f.field] = f.value;
+          if (
+            "field" in f &&
+            f.field &&
+            f.value !== undefined &&
+            validFilters[resource]?.includes(f.field)
+          ) {
+            // Handle boolean fields explicitly
+            if (f.field === "isActive" && resource === "locations") {
+              filter[f.field] = f.value === "true" || f.value === true;
+            } else {
+              filter[f.field] = f.value;
+            }
           }
         });
-        variables.filter = filter;
+        if (Object.keys(filter).length > 0) {
+          variables.filter = filter;
+        }
       }
 
-      // Add sorting if it exists
       if (sorters && sorters.length > 0) {
         variables.sort = {
           field: sorters[0].field,
-          direction: sorters[0].order?.toUpperCase() || 'DESC',
+          direction: sorters[0].order?.toUpperCase() || "DESC",
         };
       }
 
       switch (resource) {
-        case 'admins':
+        case "admins":
           query = GET_ADMINS;
           variables = { page: current, limit: pageSize };
           break;
-        case 'trips':
+        case "trips":
           query = GET_TRIPS;
           break;
-        case 'drivers':
+        case "drivers":
           query = GET_DRIVERS;
           break;
-        case 'customers':
+        case "customers":
           query = GET_CUSTOMERS;
           break;
-        case 'vehicles':
+        case "vehicles":
           query = GET_VEHICLES;
           break;
-        case 'subscriptions':
+        case "subscriptions":
           query = GET_SUBSCRIPTIONS;
           break;
-        case 'subscription-plans':
+        case "subscription-plans":
           query = GET_SUBSCRIPTION_PLANS;
           break;
-        case 'payments':
+        case "payments":
           query = GET_PAYMENTS;
           break;
-        case 'audit-logs':
+        case "audit-logs":
           query = GET_AUDIT_LOGS;
-          variables = { filters: variables.filter };
+          variables = { filters: variables.filter || {} };
+          break;
+        case "locations":
+          query = GET_LOCATIONS;
           break;
         default:
           throw new Error(`Resource ${resource} not supported`);
@@ -760,26 +972,47 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
 
       const result = await client.query(query, variables).toPromise();
 
+      // Log result for debugging
+      console.log(
+        `getList(${resource}) - Variables:`,
+        JSON.stringify(variables, null, 2)
+      );
+      console.log(`getList(${resource}) - Result:`, {
+        data: result,
+        error: result.error,
+      });
+
       if (result.error) {
-        throw new Error(result.error.message);
+        throw new Error(`GraphQL Error: ${result.error.message}`);
+      }
+
+      if (!result.data) {
+        throw new Error(`No data returned for ${resource}`);
       }
 
       let data, total;
 
-      if (resource === 'admins') {
-        const adminData = result.data?.getAllAdmins;
+      if (resource === "admins") {
+        const adminData = result.data.getAllAdmins;
         data = adminData?.admins || [];
         total = adminData?.total || 0;
-      } else if (resource === 'audit-logs') {
-        const auditData = result.data?.getAuditLogs;
+      } else if (resource === "audit-logs") {
+        const auditData = result.data.getAuditLogs;
         data = auditData?.logs || [];
         total = auditData?.total || 0;
+      } else if (resource === "locations") {
+        const locationData = result.data.listLocations;
+        if (!locationData) {
+          throw new Error("listLocations data is undefined");
+        }
+        data = locationData.data || [];
+        total = locationData.paginationResult?.totalDocs || data.length;
       } else {
         const dataKey = `list${
           resource.charAt(0).toUpperCase() + resource.slice(1)
         }`;
-        data = result.data?.[dataKey] || [];
-        total = data.length;
+        data = result.data[dataKey] || [];
+        total = data.length; // Fallback; adjust if backend provides total
       }
 
       return {
@@ -788,7 +1021,7 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       };
     } catch (error: any) {
       console.error(`Error fetching ${resource}:`, error);
-      throw error;
+      throw new Error(`Failed to fetch ${resource}: ${error.message}`);
     }
   },
 
@@ -798,29 +1031,33 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       let dataKey;
 
       switch (resource) {
-        case 'admins':
+        case "admins":
           query = GET_ADMIN;
-          dataKey = 'getAdminById';
+          dataKey = "getAdminById";
           break;
-        case 'trips':
+        case "trips":
           query = GET_TRIP;
-          dataKey = 'getTrip';
+          dataKey = "getTrip";
           break;
-        case 'drivers':
+        case "drivers":
           query = GET_DRIVER;
-          dataKey = 'getDriver';
+          dataKey = "getDriver";
           break;
-        case 'customers':
+        case "customers":
           query = GET_CUSTOMER;
-          dataKey = 'getCustomer';
+          dataKey = "getCustomer";
           break;
-        case 'vehicles':
+        case "vehicles":
           query = GET_VEHICLE;
-          dataKey = 'getVehicle';
+          dataKey = "getVehicle";
           break;
-        case 'subscription-plans':
+        case "subscription-plans":
           query = GET_SUBSCRIPTION_PLAN;
-          dataKey = 'getSubscriptionPlan';
+          dataKey = "getSubscriptionPlan";
+          break;
+        case "locations":
+          query = GET_LOCATION;
+          dataKey = "getLocation";
           break;
         default:
           throw new Error(`Resource ${resource} not supported for getOne`);
@@ -828,16 +1065,26 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
 
       const result = await client.query(query, { id }).toPromise();
 
+      // Log result for debugging
+      console.log(`getOne(${resource}, id: ${id}) - Result:`, {
+        data: result.data,
+        error: result.error,
+      });
+
       if (result.error) {
-        throw new Error(result.error.message);
+        throw new Error(`GraphQL Error: ${result.error.message}`);
+      }
+
+      if (!result.data || !result.data[dataKey]) {
+        throw new Error(`No data returned for ${resource} with id ${id}`);
       }
 
       return {
-        data: result.data?.[dataKey],
+        data: result.data[dataKey],
       };
     } catch (error: any) {
       console.error(`Error fetching ${resource} with id ${id}:`, error);
-      throw error;
+      throw new Error(`Failed to fetch ${resource}: ${error.message}`);
     }
   },
 
@@ -847,21 +1094,25 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       let dataKey;
 
       switch (resource) {
-        case 'admins':
+        case "admins":
           mutation = CREATE_ADMIN;
-          dataKey = 'createAdmin';
+          dataKey = "createAdmin";
           break;
-        case 'drivers':
+        case "drivers":
           mutation = CREATE_DRIVER;
-          dataKey = 'registerDriver';
+          dataKey = "registerDriver";
           break;
-        case 'vehicles':
+        case "vehicles":
           mutation = CREATE_VEHICLE;
-          dataKey = 'createVehicle';
+          dataKey = "createVehicle";
           break;
-        case 'subscription-plans':
+        case "subscription-plans":
           mutation = CREATE_SUBSCRIPTION_PLAN;
-          dataKey = 'createSubscriptionPlan';
+          dataKey = "createSubscriptionPlan";
+          break;
+        case "locations":
+          mutation = CREATE_LOCATION;
+          dataKey = "createLocation";
           break;
         default:
           throw new Error(`Resource ${resource} not supported for create`);
@@ -871,64 +1122,35 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         .mutation(mutation, { input: variables })
         .toPromise();
 
+      // Log result for debugging
+      console.log(
+        `create(${resource}) - Variables:`,
+        JSON.stringify(variables, null, 2)
+      );
+      console.log(`create(${resource}) - Result:`, {
+        data: result.data,
+        error: result.error,
+      });
+
       if (result.error) {
-        throw new Error(result.error.message);
+        throw new Error(`GraphQL Error: ${result.error.message}`);
       }
 
-      const responseData = result.data?.[dataKey];
+      if (!result.data || !result.data[dataKey]) {
+        throw new Error(`No data returned for create ${resource}`);
+      }
+
+      const responseData = result.data[dataKey];
 
       return {
-        data: responseData?.entity || responseData,
+        data: responseData.entity || responseData,
       };
     } catch (error: any) {
       console.error(`Error creating ${resource}:`, error);
-      throw error;
+      throw new Error(`Failed to create ${resource}: ${error.message}`);
     }
   },
-
-  update: async ({ resource, id, variables }) => {
-    try {
-      let mutation;
-      let dataKey;
-
-      switch (resource) {
-        case 'admins':
-          mutation = UPDATE_ADMIN;
-          dataKey = 'updateAdmin';
-          break;
-        case 'drivers':
-          mutation = UPDATE_DRIVER;
-          dataKey = 'updateDriverPersonalInfo';
-          break;
-        case 'vehicles':
-          mutation = UPDATE_VEHICLE;
-          dataKey = 'updateVehicle';
-          break;
-        case 'subscription-plans':
-          mutation = UPDATE_SUBSCRIPTION_PLAN;
-          dataKey = 'updateSubscriptionPlan';
-          break;
-        default:
-          throw new Error(`Resource ${resource} not supported for update`);
-      }
-
-      const result = await client
-        .mutation(mutation, { id, input: variables })
-        .toPromise();
-
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
-
-      return {
-        data: result.data?.[dataKey],
-      };
-    } catch (error: any) {
-      console.error(`Error updating ${resource} with id ${id}:`, error);
-      throw error;
-    }
-  },
-
+  
   deleteOne: async <TData extends BaseRecord = BaseRecord, TVariables = {}>({
     resource,
     id,
@@ -937,11 +1159,14 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       let mutation;
 
       switch (resource) {
-        case 'admins':
+        case "admins":
           mutation = DELETE_ADMIN;
           break;
-        case 'vehicles':
+        case "vehicles":
           mutation = DELETE_VEHICLE;
+          break;
+        case "locations":
+          mutation = DELETE_LOCATION;
           break;
         default:
           throw new Error(`Delete not implemented for ${resource} yet`);
@@ -949,8 +1174,14 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
 
       const result = await client.mutation(mutation, { id }).toPromise();
 
+      // Log result for debugging
+      console.log(`deleteOne(${resource}, id: ${id}) - Result:`, {
+        data: result.data,
+        error: result.error,
+      });
+
       if (result.error) {
-        throw new Error(result.error.message);
+        throw new Error(`GraphQL Error: ${result.error.message}`);
       }
 
       return {
@@ -958,109 +1189,139 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       };
     } catch (error: any) {
       console.error(`Error deleting ${resource} with id ${id}:`, error);
-      throw error;
+      throw new Error(`Failed to delete ${resource}: ${error.message}`);
     }
   },
+
   getApiUrl: () => {
-    return import.meta.env.VITE_API_URL || 'http://localhost:8000/graphql';
+    return import.meta.env.VITE_API_URL || "http://localhost:8080/graphql";
   },
 
-  // Custom method for special operations
   custom: async ({ url, method, headers, meta }) => {
-    if (url === 'dashboard-metrics') {
-      try {
-        const result = await client.query(GET_DASHBOARD_METRICS, {}).toPromise();
-
-        if (result.error) {
-          throw new Error(result.error.message);
-        }
-
-        return {
-          data: result.data?.getDashboardMetrics,
-        };
-      } catch (error: any) {
-        console.error('Error fetching dashboard metrics:', error);
-        throw error;
-      }
-    }
-
-    if (url === 'audit-stats') {
-      try {
-        const result = await client.query(GET_AUDIT_STATS, meta).toPromise();
-
-        if (result.error) {
-          throw new Error(result.error.message);
-        }
-
-        return {
-          data: result.data?.getAuditStats,
-        };
-      } catch (error: any) {
-        console.error('Error fetching audit stats:', error);
-        throw error;
-      }
-    }
-
-    // ADD THIS NEW CASE - This was missing!
-    if (url === 'audit-logs') {
-      try {
+    try {
+      if (url === "dashboard-metrics") {
         const result = await client
-          .query(GET_AUDIT_LOGS, {
-            filters: meta?.query || {},
-          })
+          .query(GET_DASHBOARD_METRICS, {})
           .toPromise();
-
-        if (result.error) {
-          throw new Error(result.error.message);
-        }
-
-        return {
-          data: result.data?.getAuditLogs,
-        };
-      } catch (error: any) {
-        console.error('Error fetching audit logs:', error);
-        throw error;
+        console.log("custom(dashboard-metrics) - Result:", {
+          data: result.data,
+          error: result.error,
+        });
+        if (result.error)
+          throw new Error(`GraphQL Error: ${result.error.message}`);
+        if (!result.data?.getDashboardMetrics)
+          throw new Error("No data returned for dashboard-metrics");
+        return { data: result.data.getDashboardMetrics };
       }
-    }
 
-    if (url === 'activate-admin' && meta?.id) {
-      try {
+      if (url === "audit-stats") {
+        const result = await client.query(GET_AUDIT_STATS, meta).toPromise();
+        console.log("custom(audit-stats) - Result:", {
+          data: result.data,
+          error: result.error,
+        });
+        if (result.error)
+          throw new Error(`GraphQL Error: ${result.error.message}`);
+        if (!result.data?.getAuditStats)
+          throw new Error("No data returned for audit-stats");
+        return { data: result.data.getAuditStats };
+      }
+
+      if (url === "audit-logs") {
+        const result = await client
+          .query(GET_AUDIT_LOGS, { filters: meta?.query || {} })
+          .toPromise();
+        console.log("custom(audit-logs) - Result:", {
+          data: result.data,
+          error: result.error,
+        });
+        if (result.error)
+          throw new Error(`GraphQL Error: ${result.error.message}`);
+        if (!result.data?.getAuditLogs)
+          throw new Error("No data returned for audit-logs");
+        return { data: result.data.getAuditLogs };
+      }
+
+      if (url === "activate-admin" && meta?.id) {
         const result = await client
           .mutation(ACTIVATE_ADMIN, { id: meta.id })
           .toPromise();
-
-        if (result.error) {
-          throw new Error(result.error.message);
-        }
-
-        return {
-          data: result.data?.activateAdmin,
-        };
-      } catch (error: any) {
-        console.error('Error activating admin:', error);
-        throw error;
+        console.log("custom(activate-admin) - Result:", {
+          data: result.data,
+          error: result.error,
+        });
+        if (result.error)
+          throw new Error(`GraphQL Error: ${result.error.message}`);
+        if (!result.data?.activateAdmin)
+          throw new Error("No data returned for activate-admin");
+        return { data: result.data.activateAdmin };
       }
-    }
 
-    if (url === 'deactivate-admin' && meta?.id) {
-      try {
+      if (url === "deactivate-admin" && meta?.id) {
         const result = await client
           .mutation(DEACTIVATE_ADMIN, { id: meta.id })
           .toPromise();
-
-        if (result.error) {
-          throw new Error(result.error.message);
-        }
-
-        return {
-          data: result.data?.deactivateAdmin,
-        };
-      } catch (error: any) {
-        console.error('Error deactivating admin:', error);
-        throw error;
+        console.log("custom(deactivate-admin) - Result:", {
+          data: result.data,
+          error: result.error,
+        });
+        if (result.error)
+          throw new Error(`GraphQL Error: ${result.error.message}`);
+        if (!result.data?.deactivateAdmin)
+          throw new Error("No data returned for deactivate-admin");
+        return { data: result.data.deactivateAdmin };
       }
-    }
 
-    throw new Error(`Custom method for ${url} not implemented`);
+      if (
+        url === "find-nearby-locations" &&
+        meta?.longitude &&
+        meta?.latitude
+      ) {
+        const result = await client
+          .query(FIND_NEARBY_LOCATIONS, {
+            longitude: meta.longitude,
+            latitude: meta.latitude,
+            maxDistance: meta.maxDistance,
+            locationType: meta.locationType,
+          })
+          .toPromise();
+        console.log("custom(find-nearby-locations) - Result:", {
+          data: result.data,
+          error: result.error,
+        });
+        if (result.error)
+          throw new Error(`GraphQL Error: ${result.error.message}`);
+        if (!result.data?.findNearbyLocations)
+          throw new Error("No data returned for find-nearby-locations");
+        return { data: result.data.findNearbyLocations };
+      }
+
+      if (
+        url === "find-locations-by-point" &&
+        meta?.longitude &&
+        meta?.latitude
+      ) {
+        const result = await client
+          .query(FIND_LOCATIONS_BY_POINT, {
+            longitude: meta.longitude,
+            latitude: meta.latitude,
+          })
+          .toPromise();
+        console.log("custom(find-locations-by-point) - Result:", {
+          data: result.data,
+          error: result.error,
+        });
+        if (result.error)
+          throw new Error(`GraphQL Error: ${result.error.message}`);
+        if (!result.data?.findLocationsByPoint)
+          throw new Error("No data returned for find-locations-by-point");
+        return { data: result.data.findLocationsByPoint };
+      }
+
+      throw new Error(`Custom method for ${url} not implemented`);
+    } catch (error: any) {
+      console.error(`Error in custom(${url}):`, error);
+      throw new Error(`Failed to execute custom(${url}): ${error.message}`);
+    }
   },
 });
