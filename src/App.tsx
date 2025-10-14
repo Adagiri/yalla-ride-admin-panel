@@ -1,5 +1,10 @@
 import React from "react";
-import { Refine, Authenticated, AuthBindings } from "@refinedev/core";
+import {
+  Refine,
+  Authenticated,
+  AuthBindings,
+  AuthProvider,
+} from "@refinedev/core";
 import {
   ThemedLayoutV2,
   RefineThemes,
@@ -100,8 +105,7 @@ export const client = new Client({
 const dataProvider = createCustomDataProvider(client);
 
 // Authentication provider with backend integration
-// Authentication provider with backend integration
-const authProvider: AuthBindings = {
+const authProvider: AuthProvider = {
   login: async ({ email, password }: { email: string; password: string }) => {
     try {
       const mutation = `

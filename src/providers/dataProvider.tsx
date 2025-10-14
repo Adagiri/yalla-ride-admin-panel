@@ -3,6 +3,7 @@ import {
   DataProvider,
   DeleteOneParams,
   DeleteOneResponse,
+  UpdateParams,
 } from "@refinedev/core";
 import { Client, gql } from "@urql/core";
 
@@ -973,14 +974,14 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       const result = await client.query(query, variables).toPromise();
 
       // Log result for debugging
-      console.log(
-        `getList(${resource}) - Variables:`,
-        JSON.stringify(variables, null, 2)
-      );
-      console.log(`getList(${resource}) - Result:`, {
-        data: result,
-        error: result.error,
-      });
+      // console.log(
+      //   `getList(${resource}) - Variables:`,
+      //   JSON.stringify(variables, null, 2)
+      // );
+      // console.log(`getList(${resource}) - Result:`, {
+      //   data: result,
+      //   error: result.error,
+      // });
 
       if (result.error) {
         throw new Error(`GraphQL Error: ${result.error.message}`);
@@ -1066,10 +1067,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       const result = await client.query(query, { id }).toPromise();
 
       // Log result for debugging
-      console.log(`getOne(${resource}, id: ${id}) - Result:`, {
-        data: result.data,
-        error: result.error,
-      });
+      // console.log(`getOne(${resource}, id: ${id}) - Result:`, {
+      //   data: result.data,
+      //   error: result.error,
+      // });
 
       if (result.error) {
         throw new Error(`GraphQL Error: ${result.error.message}`);
@@ -1123,14 +1124,14 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         .toPromise();
 
       // Log result for debugging
-      console.log(
-        `create(${resource}) - Variables:`,
-        JSON.stringify(variables, null, 2)
-      );
-      console.log(`create(${resource}) - Result:`, {
-        data: result.data,
-        error: result.error,
-      });
+      // console.log(
+      //   `create(${resource}) - Variables:`,
+      //   JSON.stringify(variables, null, 2)
+      // );
+      // console.log(`create(${resource}) - Result:`, {
+      //   data: result.data,
+      //   error: result.error,
+      // });
 
       if (result.error) {
         throw new Error(`GraphQL Error: ${result.error.message}`);
@@ -1150,7 +1151,68 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       throw new Error(`Failed to create ${resource}: ${error.message}`);
     }
   },
-  
+
+  update: async ({ resource, id, variables }) => {
+    try {
+      let mutation;
+      let dataKey;
+
+      switch (resource) {
+        case "admins":
+          mutation = UPDATE_ADMIN;
+          dataKey = "updateAdmin";
+          break;
+        case "drivers":
+          mutation = UPDATE_DRIVER;
+          dataKey = "updateDriverPersonalInfo";
+          break;
+        case "vehicles":
+          mutation = UPDATE_VEHICLE;
+          dataKey = "updateVehicle";
+          break;
+        case "subscription-plans":
+          mutation = UPDATE_SUBSCRIPTION_PLAN;
+          dataKey = "updateSubscriptionPlan";
+          break;
+        case "locations":
+          mutation = UPDATE_LOCATION;
+          dataKey = "updateLocation";
+          break;
+        default:
+          throw new Error(`Resource ${resource} not supported for update`);
+      }
+
+      const result = await client
+        .mutation(mutation, { id, input: variables })
+        .toPromise();
+
+      // Log result for debugging
+      // console.log(
+      //   `update(${resource}, id: ${id}) - Variables:`,
+      //   JSON.stringify(variables, null, 2)
+      // );
+      // console.log(`update(${resource}) - Result:`, {
+      //   data: result.data,
+      //   error: result.error,
+      // });
+
+      if (result.error) {
+        throw new Error(`GraphQL Error: ${result.error.message}`);
+      }
+
+      if (!result.data || !result.data[dataKey]) {
+        throw new Error(`No data returned for update ${resource}`);
+      }
+
+      return {
+        data: result.data[dataKey],
+      };
+    } catch (error: any) {
+      console.error(`Error updating ${resource} with id ${id}:`, error);
+      throw new Error(`Failed to update ${resource}: ${error.message}`);
+    }
+  },
+
   deleteOne: async <TData extends BaseRecord = BaseRecord, TVariables = {}>({
     resource,
     id,
@@ -1175,10 +1237,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       const result = await client.mutation(mutation, { id }).toPromise();
 
       // Log result for debugging
-      console.log(`deleteOne(${resource}, id: ${id}) - Result:`, {
-        data: result.data,
-        error: result.error,
-      });
+      // console.log(`deleteOne(${resource}, id: ${id}) - Result:`, {
+      //   data: result.data,
+      //   error: result.error,
+      // });
 
       if (result.error) {
         throw new Error(`GraphQL Error: ${result.error.message}`);
@@ -1203,10 +1265,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         const result = await client
           .query(GET_DASHBOARD_METRICS, {})
           .toPromise();
-        console.log("custom(dashboard-metrics) - Result:", {
-          data: result.data,
-          error: result.error,
-        });
+        // console.log("custom(dashboard-metrics) - Result:", {
+        //   data: result.data,
+        //   error: result.error,
+        // });
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.getDashboardMetrics)
@@ -1216,10 +1278,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
 
       if (url === "audit-stats") {
         const result = await client.query(GET_AUDIT_STATS, meta).toPromise();
-        console.log("custom(audit-stats) - Result:", {
-          data: result.data,
-          error: result.error,
-        });
+        // console.log("custom(audit-stats) - Result:", {
+        //   data: result.data,
+        //   error: result.error,
+        // });
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.getAuditStats)
@@ -1231,10 +1293,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         const result = await client
           .query(GET_AUDIT_LOGS, { filters: meta?.query || {} })
           .toPromise();
-        console.log("custom(audit-logs) - Result:", {
-          data: result.data,
-          error: result.error,
-        });
+        // console.log("custom(audit-logs) - Result:", {
+        //   data: result.data,
+        //   error: result.error,
+        // });
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.getAuditLogs)
@@ -1246,10 +1308,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         const result = await client
           .mutation(ACTIVATE_ADMIN, { id: meta.id })
           .toPromise();
-        console.log("custom(activate-admin) - Result:", {
-          data: result.data,
-          error: result.error,
-        });
+        // console.log("custom(activate-admin) - Result:", {
+        //   data: result.data,
+        //   error: result.error,
+        // });
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.activateAdmin)
@@ -1261,10 +1323,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         const result = await client
           .mutation(DEACTIVATE_ADMIN, { id: meta.id })
           .toPromise();
-        console.log("custom(deactivate-admin) - Result:", {
-          data: result.data,
-          error: result.error,
-        });
+        // console.log("custom(deactivate-admin) - Result:", {
+        //   data: result.data,
+        //   error: result.error,
+        // });
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.deactivateAdmin)
@@ -1285,10 +1347,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
             locationType: meta.locationType,
           })
           .toPromise();
-        console.log("custom(find-nearby-locations) - Result:", {
-          data: result.data,
-          error: result.error,
-        });
+        // console.log("custom(find-nearby-locations) - Result:", {
+        //   data: result.data,
+        //   error: result.error,
+        // });
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.findNearbyLocations)
@@ -1307,10 +1369,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
             latitude: meta.latitude,
           })
           .toPromise();
-        console.log("custom(find-locations-by-point) - Result:", {
-          data: result.data,
-          error: result.error,
-        });
+        // console.log("custom(find-locations-by-point) - Result:", {
+        //   data: result.data,
+        //   error: result.error,
+        // });
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.findLocationsByPoint)
