@@ -85,3 +85,48 @@ export interface Location {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Driver {
+  id: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  phone: {
+    countryCode: string;
+    localNumber: string;
+    fullPhone: string;
+  };
+  isOnline: boolean;
+  isAvailable: boolean;
+  paymentModel: 'SUBSCRIPTION' | 'COMMISSION';
+  stats: {
+    totalTrips: number;
+    averageRating: number;
+    totalEarnings: number;
+    completionRate: number;
+  };
+  profilePhotoSet: boolean;
+  profilePhoto?: string;
+  personalInfoSet: boolean;
+  driverLicenseVerified: boolean;
+  vehicleInspectionDone: boolean;
+  driverLicenseFront?: string;
+  driverLicenseBack?: string;
+  vehicleId?: string;
+  currentLocation?: {
+    coordinates: [number, number];
+    heading?: number;
+    updatedAt?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VerificationAction {
+  success: boolean;
+  message: string;
+}
+
+export interface FileDownloadResponse {
+  url: string;
+}
