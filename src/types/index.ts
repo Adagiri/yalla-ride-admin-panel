@@ -3,7 +3,7 @@ export interface AdminUser {
   firstname: string;
   lastname: string;
   email: string;
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'SUPPORT' | 'ANALYST';
+  role: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "SUPPORT" | "ANALYST";
   permissions: string[];
   department: string;
   isActive: boolean;
@@ -16,12 +16,12 @@ export interface AdminUser {
 
 export interface Notification {
   id: string;
-  type: 'info' | 'warning' | 'error' | 'success';
+  type: "info" | "warning" | "error" | "success";
   title: string;
   message: string;
   recipients: string[];
-  channels: ('push' | 'email' | 'sms' | 'in_app')[];
-  status: 'pending' | 'sent' | 'failed';
+  channels: ("push" | "email" | "sms" | "in_app")[];
+  status: "pending" | "sent" | "failed";
   sentAt?: string;
   scheduledFor?: string;
   createdAt: string;
@@ -66,7 +66,6 @@ export interface SystemSettings {
   };
 }
 
-
 export interface Location {
   id: string;
   name: string;
@@ -98,7 +97,7 @@ export interface Driver {
   };
   isOnline: boolean;
   isAvailable: boolean;
-  paymentModel: 'SUBSCRIPTION' | 'COMMISSION';
+  paymentModel: "SUBSCRIPTION" | "COMMISSION";
   stats: {
     totalTrips: number;
     averageRating: number;
@@ -129,4 +128,22 @@ export interface VerificationAction {
 
 export interface FileDownloadResponse {
   url: string;
+}
+export interface FileDownloadPayload {
+  key: string;
+}
+
+export interface VerificationPayload {
+  userId: string;
+  verified: boolean;
+}
+
+export interface VehicleInspectionPayload {
+  userId: string;
+  inspected: boolean;
+}
+
+export interface SettingsUpdatePayload {
+  id: string;
+  input: any;
 }
