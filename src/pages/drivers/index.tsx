@@ -77,16 +77,15 @@ interface VerificationSectionProps {
   onToggle: (verified: boolean) => void;
   images?: { front?: string; back?: string };
   loading?: boolean;
+  src?: string;
   canBeVerified?: boolean;
 }
 
-// Fix: Proper typing for image URLs
 interface ImageUrls {
   front?: string;
   back?: string;
 }
 
-// Fix: Interface for the file download response
 interface FileDownloadResponse {
   data: string;
 }
@@ -97,6 +96,7 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
     verified,
     onToggle,
     images,
+    src,
     loading = false,
     canBeVerified = true,
   }) => {
@@ -104,13 +104,14 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
     const [loadingImages, setLoadingImages] = useState<{
       front: boolean;
       back: boolean;
+      profilePhoto: boolean;
     }>({
       front: false,
       back: false,
+      profilePhoto: true,
     });
     const { open } = useNotification();
 
-    // Fix: Proper typing for useCustom hooks and data access
     const {
       data: frontData,
       isLoading: frontIsLoading,
@@ -126,7 +127,6 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
       queryOptions: {
         enabled: !!images?.front,
         onSuccess: (data) => {
-          // Fix: Access the data property correctly
           if (data?.data) {
             setImageUrls((prev: any) => ({ ...prev, front: data.data }));
           }
@@ -152,7 +152,6 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
       queryOptions: {
         enabled: !!images?.back,
         onSuccess: (data) => {
-          // Fix: Access the data property correctly
           if (data?.data) {
             setImageUrls((prev: any) => ({ ...prev, back: data.data }));
           }
@@ -168,6 +167,7 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
       setLoadingImages({
         front: frontIsLoading,
         back: backIsLoading,
+        profilePhoto: false,
       });
     }, [frontIsLoading, backIsLoading]);
 
@@ -177,6 +177,7 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
       alt: string,
       error?: any
     ) => {
+      console.log(url, "profilePhoto");
       if (error)
         return <Alert message="Failed to load image" type="error" showIcon />;
       if (loading) return <Spin tip="Loading image..." />;
@@ -219,7 +220,7 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
           <Space>
             {title === "Profile Photo" && <PictureOutlined />}
             {title === "Driver License" && <IdcardOutlined />}
-            {title === "Vehicle Inspection" && <CarOutlined />}
+            {/* {title === "Vehicle Inspection" && <CarOutlined />} */}
             {title === "Personal Information" && <UserOutlined />}
             <Text strong>{title}</Text>
           </Space>
@@ -254,20 +255,20 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
                 <Col span={12}>
                   <Card size="small" title="Front Side">
                     {renderImageWithFallback(
-                      imageUrls.front,
-                      loadingImages.front,
+                      imageUrls?.front,
+                      loadingImages?.front,
                       "Driver License Front",
                       frontError
                     )}
                   </Card>
                 </Col>
               )}
-              {images.back && (
+              {images?.back && (
                 <Col span={12}>
                   <Card size="small" title="Back Side">
                     {renderImageWithFallback(
-                      imageUrls.back,
-                      loadingImages.back,
+                      imageUrls?.back,
+                      loadingImages?.back,
                       "Driver License Back",
                       backError
                     )}
@@ -278,7 +279,7 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
           </div>
         )}
 
-        {title === "Profile Photo" && images?.front && (
+        {title === "Profile Photo" && src && (
           <div style={{ textAlign: "center" }}>
             <Text
               type="secondary"
@@ -287,10 +288,10 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
               Profile Photo:
             </Text>
             {renderImageWithFallback(
-              imageUrls.front,
-              loadingImages.front,
-              "Profile Photo",
-              frontError
+              src,
+              loadingImages?.profilePhoto,
+              "Profile Photo"
+              // frontError
             )}
           </div>
         )}
@@ -303,9 +304,8 @@ export const DriverList: React.FC = () => {
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { open } = useNotification();
-  const [searchForm] = Form.useForm();
+  const [searchForm] = Form?.useForm();
 
-  // FIX 1: Use the correct useTable return values for newer Refine versions
   const {
     tableQuery,
     sorters,
@@ -334,8 +334,8 @@ export const DriverList: React.FC = () => {
   const { mutate: mutateLicense } = useCustomMutation();
   const { mutate: mutateInspection } = useCustomMutation();
 
-  // FIX 2: Manually handle table data since tableProps doesn't exist
   const dataSource = tableQuery?.data?.data || [];
+  console.log(dataSource, "🚗 Loaded Drivers");
   const total = tableQuery?.data?.total || 0;
 
   // Create manual pagination since tableProps doesn't exist
@@ -360,7 +360,7 @@ export const DriverList: React.FC = () => {
   const handleSearch = useCallback(
     (values: { search?: string }) => {
       const newFilters: CrudFilters = [];
-      if (values.search && values.search.trim()) {
+      if (values?.search && values.search?.trim()) {
         newFilters.push({
           field: "search",
           operator: "contains" as const,
@@ -410,7 +410,7 @@ export const DriverList: React.FC = () => {
           url: "toggle-driver-license-verification",
           method: "post",
           values: {
-            userId: selectedDriver.id,
+            userId: selectedDriver?.id,
             verified,
           },
         },
@@ -423,7 +423,7 @@ export const DriverList: React.FC = () => {
             setSelectedDriver((prev) =>
               prev ? { ...prev, driverLicenseVerified: verified } : null
             );
-            tableQuery.refetch();
+            tableQuery?.refetch();
           },
           onError: (error) =>
             open?.({ type: "error", message: `Failed: ${error.message}` }),
@@ -433,40 +433,40 @@ export const DriverList: React.FC = () => {
     [selectedDriver, open, mutateLicense, tableQuery]
   );
 
-  const handleVehicleInspection = useCallback(
-    (inspected: boolean) => {
-      if (!selectedDriver?.id) {
-        open?.({ type: "error", message: "No driver selected" });
-        return;
-      }
+  // const handleVehicleInspection = useCallback(
+  //   (inspected: boolean) => {
+  //     if (!selectedDriver?.id) {
+  //       open?.({ type: "error", message: "No driver selected" });
+  //       return;
+  //     }
 
-      mutateInspection(
-        {
-          url: "toggle-vehicle-inspection",
-          method: "post",
-          values: {
-            userId: selectedDriver.id,
-            inspected,
-          },
-        },
-        {
-          onSuccess: (data) => {
-            open?.({
-              type: "success",
-              message: `Inspection ${inspected ? "approved" : "rejected"}`,
-            });
-            setSelectedDriver((prev) =>
-              prev ? { ...prev, vehicleInspectionDone: inspected } : null
-            );
-            tableQuery.refetch();
-          },
-          onError: (error) =>
-            open?.({ type: "error", message: `Failed: ${error.message}` }),
-        }
-      );
-    },
-    [selectedDriver, open, mutateInspection, tableQuery]
-  );
+  //     mutateInspection(
+  //       {
+  //         url: "toggle-vehicle-inspection",
+  //         method: "post",
+  //         values: {
+  //           userId: selectedDriver.id,
+  //           inspected,
+  //         },
+  //       },
+  //       {
+  //         onSuccess: (data) => {
+  //           open?.({
+  //             type: "success",
+  //             message: `Inspection ${inspected ? "approved" : "rejected"}`,
+  //           });
+  //           setSelectedDriver((prev) =>
+  //             prev ? { ...prev, vehicleInspectionDone: inspected } : null
+  //           );
+  //           tableQuery.refetch();
+  //         },
+  //         onError: (error) =>
+  //           open?.({ type: "error", message: `Failed: ${error.message}` }),
+  //       }
+  //     );
+  //   },
+  //   [selectedDriver, open, mutateInspection, tableQuery]
+  // );
 
   // Table columns definition
   const columns = [
@@ -476,14 +476,14 @@ export const DriverList: React.FC = () => {
       render: (_: any, record: Driver) => (
         <Space>
           <Avatar
-            src={record.profilePhoto}
+            src={record?.profilePhoto}
             icon={<UserOutlined />}
             size="large"
           />
           <div>
             <div>
               <Text strong>
-                {record.firstname} {record.lastname}
+                {record?.firstname} {record?.lastname}
               </Text>
               {record.profilePhotoSet && (
                 <CheckCircleOutlined
@@ -748,9 +748,7 @@ export const DriverList: React.FC = () => {
           scroll={{ x: 1200 }}
           pagination={pagination}
           loading={tableQuery.isLoading || tableQuery.isFetching}
-          onChange={(pagination, filters, sorter) => {
-            // Handle table changes manually if needed
-          }}
+          onChange={(pagination, filters, sorter) => {}}
         />
       </List>
 
@@ -795,7 +793,7 @@ export const DriverList: React.FC = () => {
               title="Profile Photo"
               verified={selectedDriver.profilePhotoSet}
               onToggle={() => {}}
-              images={{ front: selectedDriver.profilePhoto }}
+              src={selectedDriver.profilePhoto}
               canBeVerified={false}
             />
 
@@ -821,13 +819,13 @@ export const DriverList: React.FC = () => {
               }
             />
 
-            <VerificationSection
+            {/* <VerificationSection
               title="Vehicle Inspection"
               verified={selectedDriver.vehicleInspectionDone}
               onToggle={handleVehicleInspection}
               loading={false}
               canBeVerified={true}
-            />
+            /> */}
 
             <Card
               title="Overall Verification Status"

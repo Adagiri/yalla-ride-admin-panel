@@ -1590,7 +1590,7 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === "activate-payment-setting") {
-        const settingsPayload = payload as { id: string }
+        const settingsPayload = payload as { id: string };
         const result = await client
           .mutation(SETTINGS_OPERATIONS.ACTIVATE_PAYMENT_SETTING, {
             id: settingsPayload!.id,

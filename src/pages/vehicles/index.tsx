@@ -238,9 +238,6 @@ export const VehicleList: React.FC = () => {
               onClick={() => handleViewDetails(record)}
             />
           </Tooltip>
-          <Tooltip title="Edit Vehicle">
-            <EditButton hideText size="small" recordItemId={record.id} />
-          </Tooltip>
         </Space>
       ),
     },
@@ -379,16 +376,6 @@ export const VehicleList: React.FC = () => {
           <Button key="close" onClick={() => setDetailsModalVisible(false)}>
             Close
           </Button>,
-          selectedVehicle && (
-            <EditButton
-              key="edit"
-              type="primary"
-              recordItemId={selectedVehicle.id}
-              onClick={() => setDetailsModalVisible(false)}
-            >
-              Edit Vehicle
-            </EditButton>
-          ),
         ]}
       >
         {selectedVehicle && (
