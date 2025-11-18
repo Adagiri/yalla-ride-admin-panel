@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   List,
   ShowButton,
   useTable,
   FilterDropdown,
   getDefaultSortOrder,
-} from '@refinedev/antd';
-import { useGo } from '@refinedev/core';
+} from "@refinedev/antd";
+import { useGo } from "@refinedev/core";
 import {
   Table,
   Space,
@@ -30,7 +30,7 @@ import {
   Alert,
   Progress,
   Timeline,
-} from 'antd';
+} from "antd";
 import {
   CreditCardOutlined,
   DollarOutlined,
@@ -50,8 +50,8 @@ import {
   SyncOutlined,
   MoneyCollectOutlined,
   TrophyOutlined,
-} from '@ant-design/icons';
-import { ColumnsType } from 'antd/es/table';
+} from "@ant-design/icons";
+import { ColumnsType } from "antd/es/table";
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -62,8 +62,8 @@ interface Payment {
   id: string;
   amount: number;
   currency: string;
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
-  paymentMethod: 'cash' | 'card' | 'wallet' | 'bank_transfer';
+  status: "pending" | "completed" | "failed" | "refunded";
+  paymentMethod: "cash" | "card" | "wallet" | "bank_transfer";
   reference: string;
   trip: {
     id: string;
@@ -113,21 +113,21 @@ export const PaymentList: React.FC = () => {
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [refundModalVisible, setRefundModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState('payments');
+  const [activeTab, setActiveTab] = useState("payments");
 
   const { tableProps, sorters, filters, searchFormProps } = useTable<Payment>({
-    resource: 'payments',
+    resource: "payments",
     initialSorter: [
       {
-        field: 'createdAt',
-        order: 'desc',
+        field: "createdAt",
+        order: "desc",
       },
     ],
     onSearch: (params: any) => {
       return [
         {
-          field: 'search',
-          operator: 'contains',
+          field: "search",
+          operator: "contains",
           value: params.search,
         },
       ];
@@ -148,38 +148,38 @@ export const PaymentList: React.FC = () => {
   const processRefund = async (values: any) => {
     try {
       // Call your refund payment mutation here
-      message.success('Refund processed successfully');
+      message.success("Refund processed successfully");
       setRefundModalVisible(false);
       // Refresh table data
     } catch (error) {
-      message.error('Failed to process refund');
+      message.error("Failed to process refund");
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'success';
-      case 'pending':
-        return 'processing';
-      case 'failed':
-        return 'error';
-      case 'refunded':
-        return 'warning';
+      case "completed":
+        return "success";
+      case "pending":
+        return "processing";
+      case "failed":
+        return "error";
+      case "refunded":
+        return "warning";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircleOutlined />;
-      case 'pending':
+      case "pending":
         return <SyncOutlined spin />;
-      case 'failed':
+      case "failed":
         return <CloseCircleOutlined />;
-      case 'refunded':
+      case "refunded":
         return <ExclamationCircleOutlined />;
       default:
         return <ExclamationCircleOutlined />;
@@ -188,13 +188,13 @@ export const PaymentList: React.FC = () => {
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
-      case 'card':
+      case "card":
         return <CreditCardOutlined />;
-      case 'wallet':
+      case "wallet":
         return <WalletOutlined />;
-      case 'bank_transfer':
+      case "bank_transfer":
         return <BankOutlined />;
-      case 'cash':
+      case "cash":
         return <MoneyCollectOutlined />;
       default:
         return <DollarOutlined />;
@@ -203,27 +203,27 @@ export const PaymentList: React.FC = () => {
 
   const getPaymentMethodColor = (method: string) => {
     switch (method) {
-      case 'card':
-        return 'blue';
-      case 'wallet':
-        return 'green';
-      case 'bank_transfer':
-        return 'purple';
-      case 'cash':
-        return 'orange';
+      case "card":
+        return "blue";
+      case "wallet":
+        return "green";
+      case "bank_transfer":
+        return "purple";
+      case "cash":
+        return "orange";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   const columns: ColumnsType<Payment> = [
     {
-      title: 'Payment ID',
-      key: 'paymentId',
+      title: "Payment ID",
+      key: "paymentId",
       render: (_: any, record: Payment) => (
-        <Space direction='vertical' size='small'>
+        <Space direction="vertical" size="small">
           <Text strong>{record.reference}</Text>
-          <Text type='secondary' style={{ fontSize: '12px' }}>
+          <Text type="secondary" style={{ fontSize: "12px" }}>
             {new Date(record.createdAt).toLocaleString()}
           </Text>
         </Space>
@@ -231,24 +231,24 @@ export const PaymentList: React.FC = () => {
       sorter: true,
     },
     {
-      title: 'Trip',
-      key: 'trip',
+      title: "Trip",
+      key: "trip",
       render: (_: any, record: Payment) =>
         record.trip ? (
-          <Space direction='vertical' size='small'>
+          <Space direction="vertical" size="small">
             <div>
               <EnvironmentOutlined />
               <Text strong style={{ marginLeft: 4 }}>
                 {record.trip.tripNumber}
               </Text>
             </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>
-              Customer: {record.trip.customer.firstname}{' '}
-              {record.trip.customer.lastname}
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              Customer: {record.trip.customer?.firstname}{" "}
+              {record.trip.customer?.lastname}
             </div>
-            <div style={{ fontSize: '12px', color: '#666' }}>
-              Driver: {record.trip.driver.firstname}{' '}
-              {record.trip.driver.lastname}
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              Driver: {record.trip?.driver?.firstname}{" "}
+              {record.trip?.driver?.lastname}
             </div>
           </Space>
         ) : (
@@ -256,9 +256,9 @@ export const PaymentList: React.FC = () => {
             <UserOutlined />
             <div>
               <Text>
-                {record.customer.firstname} {record.customer.lastname}
+                {record?.customer?.firstname} {record?.customer?.lastname}
               </Text>
-              <div style={{ fontSize: '12px', color: '#666' }}>
+              <div style={{ fontSize: "12px", color: "#666" }}>
                 Wallet Top-up
               </div>
             </div>
@@ -266,10 +266,10 @@ export const PaymentList: React.FC = () => {
         ),
     },
     {
-      title: 'Amount',
-      key: 'amount',
+      title: "Amount",
+      key: "amount",
       render: (_: any, record: Payment) => (
-        <Space direction='vertical' size='small'>
+        <Space direction="vertical" size="small">
           <div>
             <DollarOutlined />
             <Text strong style={{ marginLeft: 4 }}>
@@ -279,46 +279,46 @@ export const PaymentList: React.FC = () => {
         </Space>
       ),
       sorter: true,
-      defaultSortOrder: getDefaultSortOrder('amount', sorters),
+      defaultSortOrder: getDefaultSortOrder("amount", sorters),
     },
     {
-      title: 'Payment Method',
-      dataIndex: 'paymentMethod',
-      key: 'paymentMethod',
+      title: "Payment Method",
+      dataIndex: "paymentMethod",
+      key: "paymentMethod",
       render: (method: string) => (
         <Tag
           color={getPaymentMethodColor(method)}
           icon={getPaymentMethodIcon(method)}
         >
-          {method.replace('_', ' ').toUpperCase()}
+          {method.replace("_", " ").toUpperCase()}
         </Tag>
       ),
       filterDropdown: (props: any) => (
         <FilterDropdown {...props}>
           <Select
             style={{ minWidth: 200 }}
-            placeholder='Select payment method'
+            placeholder="Select payment method"
             allowClear
           >
-            <Option value='cash'>Cash</Option>
-            <Option value='card'>Card</Option>
-            <Option value='wallet'>Wallet</Option>
-            <Option value='bank_transfer'>Bank Transfer</Option>
+            <Option value="cash">Cash</Option>
+            <Option value="card">Card</Option>
+            <Option value="wallet">Wallet</Option>
+            <Option value="bank_transfer">Bank Transfer</Option>
           </Select>
         </FilterDropdown>
       ),
     },
     {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
       render: (status: string, record: Payment) => (
-        <Space direction='vertical' size='small'>
+        <Space direction="vertical" size="small">
           <Tag color={getStatusColor(status)} icon={getStatusIcon(status)}>
             {status.toUpperCase()}
           </Tag>
           {record.processedAt && (
-            <Text type='secondary' style={{ fontSize: '12px' }}>
+            <Text type="secondary" style={{ fontSize: "12px" }}>
               {new Date(record.processedAt).toLocaleString()}
             </Text>
           )}
@@ -328,36 +328,36 @@ export const PaymentList: React.FC = () => {
         <FilterDropdown {...props}>
           <Select
             style={{ minWidth: 200 }}
-            placeholder='Select status'
+            placeholder="Select status"
             allowClear
           >
-            <Option value='completed'>Completed</Option>
-            <Option value='pending'>Pending</Option>
-            <Option value='failed'>Failed</Option>
-            <Option value='refunded'>Refunded</Option>
+            <Option value="completed">Completed</Option>
+            <Option value="pending">Pending</Option>
+            <Option value="failed">Failed</Option>
+            <Option value="refunded">Refunded</Option>
           </Select>
         </FilterDropdown>
       ),
     },
     {
-      title: 'Actions',
-      key: 'actions',
-      fixed: 'right',
+      title: "Actions",
+      key: "actions",
+      fixed: "right",
       width: 150,
       render: (_: any, record: Payment) => (
         <Space>
-          <Tooltip title='View Details'>
+          <Tooltip title="View Details">
             <Button
               icon={<EyeOutlined />}
-              size='small'
+              size="small"
               onClick={() => handleViewDetails(record)}
             />
           </Tooltip>
-          {record.status === 'completed' && record.trip && (
-            <Tooltip title='Refund'>
+          {record.status === "completed" && record.trip && (
+            <Tooltip title="Refund">
               <Button
                 icon={<ExclamationCircleOutlined />}
-                size='small'
+                size="small"
                 onClick={() => handleRefund(record)}
               />
             </Tooltip>
@@ -374,7 +374,7 @@ export const PaymentList: React.FC = () => {
       0
     );
     const completedPayments = data.filter(
-      (p: Payment) => p.status === 'completed'
+      (p: Payment) => p.status === "completed"
     );
     const completedAmount = completedPayments.reduce(
       (sum: number, p: Payment) => sum + p.amount,
@@ -384,9 +384,9 @@ export const PaymentList: React.FC = () => {
     return {
       total: data.length,
       completed: completedPayments.length,
-      pending: data.filter((p: Payment) => p.status === 'pending').length,
-      failed: data.filter((p: Payment) => p.status === 'failed').length,
-      refunded: data.filter((p: Payment) => p.status === 'refunded').length,
+      pending: data.filter((p: Payment) => p.status === "pending").length,
+      failed: data.filter((p: Payment) => p.status === "failed").length,
+      refunded: data.filter((p: Payment) => p.status === "refunded").length,
       totalAmount,
       completedAmount,
       averageAmount:
@@ -413,11 +413,273 @@ export const PaymentList: React.FC = () => {
       bank_transfer: 5,
     },
     revenueByMonth: [
-      { month: 'Jan', revenue: 125000, transactions: 50 },
-      { month: 'Feb', revenue: 150000, transactions: 60 },
-      { month: 'Mar', revenue: 180000, transactions: 72 },
+      { month: "Jan", revenue: 125000, transactions: 50 },
+      { month: "Feb", revenue: 150000, transactions: 60 },
+      { month: "Mar", revenue: 180000, transactions: 72 },
     ],
   };
+
+  const tabItems = [
+    {
+      key: "payments",
+      label: "Payments",
+      children: (
+        <>
+          {/* Summary Cards */}
+          <Row gutter={16} style={{ marginBottom: 16 }}>
+            <Col span={4}>
+              <Card size="small">
+                <Statistic
+                  title="Total Payments"
+                  value={stats.total}
+                  prefix={<CreditCardOutlined />}
+                />
+              </Card>
+            </Col>
+            <Col span={4}>
+              <Card size="small">
+                <Statistic
+                  title="Completed"
+                  value={stats.completed}
+                  prefix={<CheckCircleOutlined />}
+                  valueStyle={{ color: "#52c41a" }}
+                />
+              </Card>
+            </Col>
+            <Col span={4}>
+              <Card size="small">
+                <Statistic
+                  title="Pending"
+                  value={stats.pending}
+                  prefix={<SyncOutlined />}
+                  valueStyle={{ color: "#1890ff" }}
+                />
+              </Card>
+            </Col>
+            <Col span={4}>
+              <Card size="small">
+                <Statistic
+                  title="Failed"
+                  value={stats.failed}
+                  prefix={<CloseCircleOutlined />}
+                  valueStyle={{ color: "#ff4d4f" }}
+                />
+              </Card>
+            </Col>
+            <Col span={4}>
+              <Card size="small">
+                <Statistic
+                  title="Revenue"
+                  value={stats.completedAmount}
+                  prefix="₦"
+                  formatter={(value) => value?.toLocaleString()}
+                  valueStyle={{ color: "#52c41a" }}
+                />
+              </Card>
+            </Col>
+            <Col span={4}>
+              <Card size="small">
+                <Statistic
+                  title="Avg Amount"
+                  value={stats.averageAmount}
+                  prefix="₦"
+                  formatter={(value) => value?.toLocaleString()}
+                  valueStyle={{ color: "#722ed1" }}
+                />
+              </Card>
+            </Col>
+          </Row>
+
+          {/* Search and Filters */}
+          <Card style={{ marginBottom: 16 }}>
+            <Form {...searchFormProps} layout="inline">
+              <Form.Item name="search">
+                <Input
+                  placeholder="Search by reference, customer, or trip"
+                  prefix={<SearchOutlined />}
+                  style={{ width: 300 }}
+                />
+              </Form.Item>
+              <Form.Item name="dateRange">
+                <RangePicker
+                  placeholder={["Start Date", "End Date"]}
+                  style={{ width: 250 }}
+                />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Search
+                </Button>
+              </Form.Item>
+              <Form.Item>
+                <Button icon={<FilterOutlined />}>Clear Filters</Button>
+              </Form.Item>
+            </Form>
+          </Card>
+
+          {/* Payments Table */}
+          <Table<Payment>
+            {...tableProps}
+            columns={columns}
+            rowKey="id"
+            scroll={{ x: 1400 }}
+            pagination={{
+              ...tableProps.pagination,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} payments`,
+            }}
+          />
+        </>
+      ),
+    },
+    {
+      key: "analytics",
+      label: "Analytics",
+      children: (
+        <>
+          {/* Analytics Overview */}
+          <Row gutter={16} style={{ marginBottom: 24 }}>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="Total Revenue"
+                  value={analytics.totalRevenue}
+                  prefix="₦"
+                  formatter={(value) => value?.toLocaleString()}
+                  valueStyle={{ color: "#52c41a" }}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="Success Rate"
+                  value={
+                    analytics.totalTransactions > 0
+                      ? (
+                          (analytics.successfulTransactions /
+                            analytics.totalTransactions) *
+                          100
+                        ).toFixed(1)
+                      : 0
+                  }
+                  suffix="%"
+                  valueStyle={{ color: "#1890ff" }}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="Failed Transactions"
+                  value={analytics.failedTransactions}
+                  valueStyle={{ color: "#ff4d4f" }}
+                />
+              </Card>
+            </Col>
+            <Col span={6}>
+              <Card>
+                <Statistic
+                  title="Refunded"
+                  value={analytics.refundedTransactions}
+                  valueStyle={{ color: "#faad14" }}
+                />
+              </Card>
+            </Col>
+          </Row>
+
+          {/* Payment Method Breakdown */}
+          <Row gutter={16} style={{ marginBottom: 24 }}>
+            <Col span={12}>
+              <Card title="Payment Method Distribution">
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <div style={{ marginBottom: 16 }}>
+                      <Text>Cash Payments</Text>
+                      <Progress
+                        percent={analytics.paymentMethodBreakdown.cash}
+                        strokeColor="#faad14"
+                      />
+                    </div>
+                    <div style={{ marginBottom: 16 }}>
+                      <Text>Card Payments</Text>
+                      <Progress
+                        percent={analytics.paymentMethodBreakdown.card}
+                        strokeColor="#1890ff"
+                      />
+                    </div>
+                  </Col>
+                  <Col span={12}>
+                    <div style={{ marginBottom: 16 }}>
+                      <Text>Wallet Payments</Text>
+                      <Progress
+                        percent={analytics.paymentMethodBreakdown.wallet}
+                        strokeColor="#52c41a"
+                      />
+                    </div>
+                    <div style={{ marginBottom: 16 }}>
+                      <Text>Bank Transfers</Text>
+                      <Progress
+                        percent={analytics.paymentMethodBreakdown.bank_transfer}
+                        strokeColor="#722ed1"
+                      />
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+            </Col>
+            <Col span={12}>
+              <Card title="Key Metrics">
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  <Statistic
+                    title="Average Transaction Amount"
+                    value={analytics.averageTransactionAmount}
+                    prefix="₦"
+                    formatter={(value) => value?.toLocaleString()}
+                  />
+                  <Statistic
+                    title="Total Transactions"
+                    value={analytics.totalTransactions}
+                  />
+                  <Statistic
+                    title="Processing Fee"
+                    value={analytics.totalRevenue * 0.025} // 2.5% processing fee
+                    prefix="₦"
+                    formatter={(value) => value?.toLocaleString()}
+                  />
+                </Space>
+              </Card>
+            </Col>
+          </Row>
+
+          {/* Monthly Revenue Trend */}
+          <Card title="Monthly Revenue Trend">
+            <Row gutter={16}>
+              {analytics.revenueByMonth.map((data, index) => (
+                <Col span={8} key={index}>
+                  <Card size="small">
+                    <Statistic
+                      title={`${data.month} Revenue`}
+                      value={data.revenue}
+                      prefix="₦"
+                      formatter={(value) => value?.toLocaleString()}
+                    />
+                    <div style={{ marginTop: 8 }}>
+                      <Text type="secondary">
+                        {data.transactions} transactions
+                      </Text>
+                    </div>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </Card>
+        </>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -426,7 +688,7 @@ export const PaymentList: React.FC = () => {
         title={
           <div>
             <Title level={3}>Payment Management</Title>
-            <Text type='secondary'>
+            <Text type="secondary">
               Monitor transactions, process refunds, and track revenue
             </Text>
           </div>
@@ -442,258 +704,7 @@ export const PaymentList: React.FC = () => {
           </Space>
         )}
       >
-        <Tabs activeKey={activeTab} onChange={setActiveTab}>
-          <TabPane tab='Payments' key='payments'>
-            {/* Summary Cards */}
-            <Row gutter={16} style={{ marginBottom: 16 }}>
-              <Col span={4}>
-                <Card size='small'>
-                  <Statistic
-                    title='Total Payments'
-                    value={stats.total}
-                    prefix={<CreditCardOutlined />}
-                  />
-                </Card>
-              </Col>
-              <Col span={4}>
-                <Card size='small'>
-                  <Statistic
-                    title='Completed'
-                    value={stats.completed}
-                    prefix={<CheckCircleOutlined />}
-                    valueStyle={{ color: '#52c41a' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={4}>
-                <Card size='small'>
-                  <Statistic
-                    title='Pending'
-                    value={stats.pending}
-                    prefix={<SyncOutlined />}
-                    valueStyle={{ color: '#1890ff' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={4}>
-                <Card size='small'>
-                  <Statistic
-                    title='Failed'
-                    value={stats.failed}
-                    prefix={<CloseCircleOutlined />}
-                    valueStyle={{ color: '#ff4d4f' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={4}>
-                <Card size='small'>
-                  <Statistic
-                    title='Revenue'
-                    value={stats.completedAmount}
-                    prefix='₦'
-                    formatter={(value) => value?.toLocaleString()}
-                    valueStyle={{ color: '#52c41a' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={4}>
-                <Card size='small'>
-                  <Statistic
-                    title='Avg Amount'
-                    value={stats.averageAmount}
-                    prefix='₦'
-                    formatter={(value) => value?.toLocaleString()}
-                    valueStyle={{ color: '#722ed1' }}
-                  />
-                </Card>
-              </Col>
-            </Row>
-
-            {/* Search and Filters */}
-            <Card style={{ marginBottom: 16 }}>
-              <Form {...searchFormProps} layout='inline'>
-                <Form.Item name='search'>
-                  <Input
-                    placeholder='Search by reference, customer, or trip'
-                    prefix={<SearchOutlined />}
-                    style={{ width: 300 }}
-                  />
-                </Form.Item>
-                <Form.Item name='dateRange'>
-                  <RangePicker
-                    placeholder={['Start Date', 'End Date']}
-                    style={{ width: 250 }}
-                  />
-                </Form.Item>
-                <Form.Item>
-                  <Button type='primary' htmlType='submit'>
-                    Search
-                  </Button>
-                </Form.Item>
-                <Form.Item>
-                  <Button icon={<FilterOutlined />}>Clear Filters</Button>
-                </Form.Item>
-              </Form>
-            </Card>
-
-            {/* Payments Table */}
-            <Table<Payment>
-              {...tableProps}
-              columns={columns}
-              rowKey='id'
-              scroll={{ x: 1400 }}
-              pagination={{
-                ...tableProps.pagination,
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: (total, range) =>
-                  `${range[0]}-${range[1]} of ${total} payments`,
-              }}
-            />
-          </TabPane>
-
-          <TabPane tab='Analytics' key='analytics'>
-            {/* Analytics Overview */}
-            <Row gutter={16} style={{ marginBottom: 24 }}>
-              <Col span={6}>
-                <Card>
-                  <Statistic
-                    title='Total Revenue'
-                    value={analytics.totalRevenue}
-                    prefix='₦'
-                    formatter={(value) => value?.toLocaleString()}
-                    valueStyle={{ color: '#52c41a' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={6}>
-                <Card>
-                  <Statistic
-                    title='Success Rate'
-                    value={
-                      analytics.totalTransactions > 0
-                        ? (
-                            (analytics.successfulTransactions /
-                              analytics.totalTransactions) *
-                            100
-                          ).toFixed(1)
-                        : 0
-                    }
-                    suffix='%'
-                    valueStyle={{ color: '#1890ff' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={6}>
-                <Card>
-                  <Statistic
-                    title='Failed Transactions'
-                    value={analytics.failedTransactions}
-                    valueStyle={{ color: '#ff4d4f' }}
-                  />
-                </Card>
-              </Col>
-              <Col span={6}>
-                <Card>
-                  <Statistic
-                    title='Refunded'
-                    value={analytics.refundedTransactions}
-                    valueStyle={{ color: '#faad14' }}
-                  />
-                </Card>
-              </Col>
-            </Row>
-
-            {/* Payment Method Breakdown */}
-            <Row gutter={16} style={{ marginBottom: 24 }}>
-              <Col span={12}>
-                <Card title='Payment Method Distribution'>
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <div style={{ marginBottom: 16 }}>
-                        <Text>Cash Payments</Text>
-                        <Progress
-                          percent={analytics.paymentMethodBreakdown.cash}
-                          strokeColor='#faad14'
-                        />
-                      </div>
-                      <div style={{ marginBottom: 16 }}>
-                        <Text>Card Payments</Text>
-                        <Progress
-                          percent={analytics.paymentMethodBreakdown.card}
-                          strokeColor='#1890ff'
-                        />
-                      </div>
-                    </Col>
-                    <Col span={12}>
-                      <div style={{ marginBottom: 16 }}>
-                        <Text>Wallet Payments</Text>
-                        <Progress
-                          percent={analytics.paymentMethodBreakdown.wallet}
-                          strokeColor='#52c41a'
-                        />
-                      </div>
-                      <div style={{ marginBottom: 16 }}>
-                        <Text>Bank Transfers</Text>
-                        <Progress
-                          percent={
-                            analytics.paymentMethodBreakdown.bank_transfer
-                          }
-                          strokeColor='#722ed1'
-                        />
-                      </div>
-                    </Col>
-                  </Row>
-                </Card>
-              </Col>
-              <Col span={12}>
-                <Card title='Key Metrics'>
-                  <Space direction='vertical' style={{ width: '100%' }}>
-                    <Statistic
-                      title='Average Transaction Amount'
-                      value={analytics.averageTransactionAmount}
-                      prefix='₦'
-                      formatter={(value) => value?.toLocaleString()}
-                    />
-                    <Statistic
-                      title='Total Transactions'
-                      value={analytics.totalTransactions}
-                    />
-                    <Statistic
-                      title='Processing Fee'
-                      value={analytics.totalRevenue * 0.025} // 2.5% processing fee
-                      prefix='₦'
-                      formatter={(value) => value?.toLocaleString()}
-                    />
-                  </Space>
-                </Card>
-              </Col>
-            </Row>
-
-            {/* Monthly Revenue Trend */}
-            <Card title='Monthly Revenue Trend'>
-              <Row gutter={16}>
-                {analytics.revenueByMonth.map((data, index) => (
-                  <Col span={8} key={index}>
-                    <Card size='small'>
-                      <Statistic
-                        title={`${data.month} Revenue`}
-                        value={data.revenue}
-                        prefix='₦'
-                        formatter={(value) => value?.toLocaleString()}
-                      />
-                      <div style={{ marginTop: 8 }}>
-                        <Text type='secondary'>
-                          {data.transactions} transactions
-                        </Text>
-                      </div>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </Card>
-          </TabPane>
-        </Tabs>
+        <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
       </List>
 
       {/* Payment Details Modal */}
@@ -703,14 +714,14 @@ export const PaymentList: React.FC = () => {
         onCancel={() => setDetailsModalVisible(false)}
         width={800}
         footer={[
-          <Button key='close' onClick={() => setDetailsModalVisible(false)}>
+          <Button key="close" onClick={() => setDetailsModalVisible(false)}>
             Close
           </Button>,
           selectedPayment &&
-            selectedPayment.status === 'completed' &&
+            selectedPayment.status === "completed" &&
             selectedPayment.trip && (
               <Button
-                key='refund'
+                key="refund"
                 danger
                 onClick={() => {
                   setDetailsModalVisible(false);
@@ -726,16 +737,16 @@ export const PaymentList: React.FC = () => {
           <div>
             <Row gutter={16}>
               <Col span={12}>
-                <Card size='small' title='Payment Information'>
-                  <Descriptions column={1} size='small'>
-                    <Descriptions.Item label='Reference'>
+                <Card size="small" title="Payment Information">
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="Reference">
                       {selectedPayment.reference}
                     </Descriptions.Item>
-                    <Descriptions.Item label='Amount'>
+                    <Descriptions.Item label="Amount">
                       {selectedPayment.currency}₦
                       {selectedPayment.amount.toLocaleString()}
                     </Descriptions.Item>
-                    <Descriptions.Item label='Payment Method'>
+                    <Descriptions.Item label="Payment Method">
                       <Tag
                         color={getPaymentMethodColor(
                           selectedPayment.paymentMethod
@@ -745,11 +756,11 @@ export const PaymentList: React.FC = () => {
                         )}
                       >
                         {selectedPayment.paymentMethod
-                          .replace('_', ' ')
+                          .replace("_", " ")
                           .toUpperCase()}
                       </Tag>
                     </Descriptions.Item>
-                    <Descriptions.Item label='Status'>
+                    <Descriptions.Item label="Status">
                       <Tag
                         color={getStatusColor(selectedPayment.status)}
                         icon={getStatusIcon(selectedPayment.status)}
@@ -757,11 +768,11 @@ export const PaymentList: React.FC = () => {
                         {selectedPayment.status.toUpperCase()}
                       </Tag>
                     </Descriptions.Item>
-                    <Descriptions.Item label='Created'>
+                    <Descriptions.Item label="Created">
                       {new Date(selectedPayment.createdAt).toLocaleString()}
                     </Descriptions.Item>
                     {selectedPayment.processedAt && (
-                      <Descriptions.Item label='Processed'>
+                      <Descriptions.Item label="Processed">
                         {new Date(selectedPayment.processedAt).toLocaleString()}
                       </Descriptions.Item>
                     )}
@@ -769,20 +780,20 @@ export const PaymentList: React.FC = () => {
                 </Card>
               </Col>
               <Col span={12}>
-                <Card size='small' title='Customer Information'>
-                  <Descriptions column={1} size='small'>
-                    <Descriptions.Item label='Customer'>
-                      {selectedPayment.customer.firstname}{' '}
-                      {selectedPayment.customer.lastname}
+                <Card size="small" title="Customer Information">
+                  <Descriptions column={1} size="small">
+                    <Descriptions.Item label="Customer">
+                      {selectedPayment?.customer?.firstname}{" "}
+                      {selectedPayment?.customer?.lastname}
                     </Descriptions.Item>
                     {selectedPayment.trip && (
                       <>
-                        <Descriptions.Item label='Trip Number'>
+                        <Descriptions.Item label="Trip Number">
                           {selectedPayment.trip.tripNumber}
                         </Descriptions.Item>
-                        <Descriptions.Item label='Driver'>
-                          {selectedPayment.trip.driver.firstname}{' '}
-                          {selectedPayment.trip.driver.lastname}
+                        <Descriptions.Item label="Driver">
+                          {selectedPayment?.trip.driver?.firstname}{" "}
+                          {selectedPayment?.trip.driver?.lastname}
                         </Descriptions.Item>
                       </>
                     )}
@@ -795,9 +806,9 @@ export const PaymentList: React.FC = () => {
               <Row gutter={16} style={{ marginTop: 16 }}>
                 <Col span={24}>
                   <Alert
-                    message='Payment Failed'
+                    message="Payment Failed"
                     description={selectedPayment.failureReason}
-                    type='error'
+                    type="error"
                     showIcon
                   />
                 </Col>
@@ -808,9 +819,9 @@ export const PaymentList: React.FC = () => {
               <Row gutter={16} style={{ marginTop: 16 }}>
                 <Col span={24}>
                   <Alert
-                    message='Payment Refunded'
+                    message="Payment Refunded"
                     description={selectedPayment.refundReason}
-                    type='warning'
+                    type="warning"
                     showIcon
                   />
                 </Col>
@@ -822,49 +833,49 @@ export const PaymentList: React.FC = () => {
 
       {/* Refund Modal */}
       <Modal
-        title='Process Refund'
+        title="Process Refund"
         open={refundModalVisible}
         onCancel={() => setRefundModalVisible(false)}
         footer={null}
       >
         {selectedPayment && (
           <Form
-            layout='vertical'
+            layout="vertical"
             onFinish={processRefund}
             initialValues={{
               amount: selectedPayment.amount,
             }}
           >
             <Alert
-              message='Refund Request'
+              message="Refund Request"
               description={`Processing refund for payment ${selectedPayment.reference}`}
-              type='warning'
+              type="warning"
               style={{ marginBottom: 16 }}
             />
 
             <Form.Item
-              name='amount'
-              label='Refund Amount'
+              name="amount"
+              label="Refund Amount"
               rules={[{ required: true }]}
             >
               <Input
-                prefix='₦'
+                prefix="₦"
                 disabled
                 value={selectedPayment.amount.toLocaleString()}
               />
             </Form.Item>
 
             <Form.Item
-              name='reason'
-              label='Refund Reason'
+              name="reason"
+              label="Refund Reason"
               rules={[{ required: true }]}
             >
-              <Input.TextArea rows={4} placeholder='Enter reason for refund' />
+              <Input.TextArea rows={4} placeholder="Enter reason for refund" />
             </Form.Item>
 
             <Form.Item>
               <Space>
-                <Button type='primary' danger htmlType='submit'>
+                <Button type="primary" danger htmlType="submit">
                   Process Refund
                 </Button>
                 <Button onClick={() => setRefundModalVisible(false)}>

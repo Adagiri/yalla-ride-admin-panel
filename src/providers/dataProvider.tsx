@@ -481,7 +481,11 @@ const GET_ADMINS = gql`
         permissions
         department
         employeeId
-        phone
+        phone{
+        countryCode
+        fullPhone
+        localNumber
+        }
         isEmailVerified
         isMFAEnabled
         isActive
