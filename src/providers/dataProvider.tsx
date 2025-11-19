@@ -481,10 +481,10 @@ const GET_ADMINS = gql`
         permissions
         department
         employeeId
-        phone{
-        countryCode
-        fullPhone
-        localNumber
+        phone {
+          countryCode
+          fullPhone
+          localNumber
         }
         isEmailVerified
         isMFAEnabled
@@ -1363,7 +1363,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
           throw new Error("No data returned for deactivate-admin");
         return { data: result.data.deactivateAdmin };
       }
-
       if (
         url === "find-nearby-locations" &&
         meta?.longitude &&
@@ -1383,7 +1382,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
           throw new Error("No data returned for find-nearby-locations");
         return { data: result.data.findNearbyLocations };
       }
-
       if (
         url === "find-locations-by-point" &&
         meta?.longitude &&
