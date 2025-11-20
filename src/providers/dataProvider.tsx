@@ -282,6 +282,7 @@ const GET_VEHICLES = gql`
       color
       vehicleInspectionDone
       identificationNumber
+      driverId
       plateNumber
       createdAt
       updatedAt
@@ -315,6 +316,7 @@ const CREATE_VEHICLE = gql`
       color
       identificationNumber
       plateNumber
+      driverId
       createdAt
       updatedAt
     }
@@ -329,6 +331,7 @@ const UPDATE_VEHICLE = gql`
       modelName
       manufactureYear
       color
+      driverId
       identificationNumber
       vehicleInspectionDone
       plateNumber
@@ -881,6 +884,14 @@ const TOGGLE_VEHICLE_INSPECTION = gql`
     toggleVehicleInspection(userId: $userId, inspected: $inspected) {
       success
       message
+    }
+  }
+`;
+const UPDATE_DRIVER_VEHICLE_INFO = gql`
+  mutation UpdateDriverVehicleInfo($input: UpdateDriverVehicleInfo) {
+    updateDriverVehicleInfo(input: $input) {
+      id
+      vehicleInfoSet
     }
   }
 `;
@@ -1671,17 +1682,39 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         const input = (payload as any)?.input;
 
         if (!id) throw new Error("Vehicle ID is required");
+        const [driverResp, vehicleResp] = await Promise.all([
+          client
+            .mutation(UPDATE_DRIVER_VEHICLE_INFO, {
+              input: {
+                driverId: input.driverId,
+                vehicleInfoSet: input?.vehicleInspectionDone,
+              },
+            })
+            .toPromise(),
 
-        const result = await client
-          .mutation(UPDATE_VEHICLE, {
-            id,
-            input,
-          })
-          .toPromise();
+          client
+            .mutation(UPDATE_VEHICLE, {
+              id,
+              input: {
+                vehicleInspectionDone: input?.vehicleInspectionDone,
+              },
+            })
+            .toPromise(),
+        ]);
 
-        if (result.error)
-          throw new Error(`GraphQL Error: ${result.error.message}`);
-        return { data: result.data?.updateVehicle };
+        if (driverResp.error) {
+          throw new Error(
+            `GraphQL Error (updateDriverVehicleInfo): ${driverResp.error.message}`
+          );
+        }
+
+        if (vehicleResp.error) {
+          throw new Error(
+            `GraphQL Error (updateVehicle): ${vehicleResp.error.message}`
+          );
+        }
+
+        return { data: vehicleResp.data?.updateVehicle };
       }
 
       throw new Error(`Custom method for ${url} not implemented`);

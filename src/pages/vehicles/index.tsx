@@ -59,7 +59,7 @@ interface Vehicle {
   identificationNumber: string;
   plateNumber: string;
   vehicleInspectionDone: boolean;
-  driverId?: string;
+  driverId: string | undefined;
   createdAt: string;
   updatedAt: string;
 }
@@ -101,9 +101,11 @@ export const VehicleList: React.FC = () => {
 
   const handleInspectionToggle = async (
     vehicleId: string,
-    inspected: boolean
+    inspected: boolean,
+    driverId?: string
   ) => {
     try {
+      console.log(driverId, "driverId");
       await updateVehicle(
         {
           url: "update-vehicle",
@@ -112,6 +114,7 @@ export const VehicleList: React.FC = () => {
             id: vehicleId,
             input: {
               vehicleInspectionDone: inspected,
+              driverId,
             },
           },
         },
@@ -180,8 +183,8 @@ export const VehicleList: React.FC = () => {
     },
     {
       title: "Inspection Status",
-      dataIndex: "vehicleInspectionDone", // Add this dataIndex
-      key: "vehicleInspectionDone", // Use the actual field name as key
+      dataIndex: "vehicleInspectionDone",
+      key: "vehicleInspectionDone",
       render: (inspected: boolean, record: Vehicle) => (
         <Space>
           <Tag color={getStatusColor(getInspectionStatus(inspected))}>
@@ -189,7 +192,9 @@ export const VehicleList: React.FC = () => {
           </Tag>
           <Switch
             checked={inspected}
-            onChange={(checked) => handleInspectionToggle(record.id, checked)}
+            onChange={(checked) =>
+              handleInspectionToggle(record.id, checked, record?.driverId)
+            }
             loading={updatingVehicle}
             size="small"
             checkedChildren="Approved"
@@ -247,7 +252,7 @@ export const VehicleList: React.FC = () => {
   console.log(data, "vehicleData");
   const getVehicleStats = () => {
     const data = tableProps.dataSource || [];
-
+    console.log(data, "vehicle-data");
     return {
       total: data.length,
       approved: data.filter((v: Vehicle) => v.vehicleInspectionDone).length,
