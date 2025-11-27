@@ -39,6 +39,9 @@ import {
   SettingOutlined,
   AuditOutlined,
   CustomerServiceOutlined,
+  ShareAltOutlined,
+  GiftOutlined,
+  BarChartOutlined,
 } from "@ant-design/icons";
 
 // Import pages
@@ -87,6 +90,12 @@ import { AdminForgotPassword } from "./pages/auth/AdminForgotPassword";
 import { AdminResetPassword } from "./pages/auth/AdminResetPassword";
 import { SupportTicketList } from "./pages/support";
 import { Locations } from "./pages/locations"; // Updated import
+import {
+  CampaignList,
+  TransactionList,
+  RewardList,
+  ReferralAnalyticsDashboard,
+} from "./pages/referrals";
 
 export const client = new Client({
   url: import.meta.env.VITE_API_URL || "http://localhost:8000/graphql",
@@ -523,6 +532,49 @@ function App() {
                     icon: <SettingOutlined />,
                   },
                 },
+                {
+                  name: "referrals",
+                  meta: {
+                    label: "Referrals",
+                    icon: <ShareAltOutlined />,
+                  },
+                },
+                {
+                  name: "referrals/campaigns",
+                  list: "/referrals/campaigns",
+                  meta: {
+                    label: "Campaigns",
+                    icon: <GiftOutlined />,
+                    parent: "referrals",
+                  },
+                },
+                {
+                  name: "referrals/transactions",
+                  list: "/referrals/transactions",
+                  meta: {
+                    label: "Transactions",
+                    icon: <FileTextOutlined />,
+                    parent: "referrals",
+                  },
+                },
+                {
+                  name: "referrals/rewards",
+                  list: "/referrals/rewards",
+                  meta: {
+                    label: "Rewards",
+                    icon: <GiftOutlined />,
+                    parent: "referrals",
+                  },
+                },
+                {
+                  name: "referrals/analytics",
+                  list: "/referrals/analytics",
+                  meta: {
+                    label: "Analytics",
+                    icon: <BarChartOutlined />,
+                    parent: "referrals",
+                  },
+                },
               ]}
             >
               <Routes>
@@ -632,6 +684,14 @@ function App() {
 
                   {/* Settings route */}
                   <Route path="/settings" element={<SystemSettings />} />
+
+                  {/* Referral routes */}
+                  <Route path="/referrals">
+                    <Route path="campaigns" element={<CampaignList />} />
+                    <Route path="transactions" element={<TransactionList />} />
+                    <Route path="rewards" element={<RewardList />} />
+                    <Route path="analytics" element={<ReferralAnalyticsDashboard />} />
+                  </Route>
 
                   {/* Catch all */}
                   <Route path="*" element={<ErrorComponent />} />
