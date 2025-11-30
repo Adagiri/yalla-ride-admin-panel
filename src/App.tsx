@@ -1,29 +1,29 @@
-import React from "react";
+import React from 'react';
 import {
   Refine,
   Authenticated,
   AuthBindings,
   AuthProvider,
-} from "@refinedev/core";
+} from '@refinedev/core';
 import {
   ThemedLayoutV2,
   RefineThemes,
   useNotificationProvider,
   ErrorComponent,
-} from "@refinedev/antd";
+} from '@refinedev/antd';
 import routerProvider, {
   NavigateToResource,
   CatchAllNavigate,
   UnsavedChangesNotifier,
   DocumentTitleHandler,
-} from "@refinedev/react-router-v6";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { ConfigProvider, App as AntdApp } from "antd";
-import "@refinedev/antd/dist/reset.css";
+} from '@refinedev/react-router-v6';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { ConfigProvider, App as AntdApp } from 'antd';
+import '@refinedev/antd/dist/reset.css';
 
-import { Client, fetchExchange } from "@urql/core";
-import { Provider } from "urql";
-import { createCustomDataProvider } from "./providers/dataProvider";
+import { Client, fetchExchange } from '@urql/core';
+import { Provider } from 'urql';
+import { createCustomDataProvider } from './providers/dataProvider';
 
 // Import Ant Design Icons for resources
 import {
@@ -39,63 +39,64 @@ import {
   SettingOutlined,
   AuditOutlined,
   CustomerServiceOutlined,
-} from "@ant-design/icons";
+} from '@ant-design/icons';
 
 // Import pages
-import { DashboardPage } from "./pages/dashboard";
+import { DashboardPage } from './pages/dashboard';
 import {
   TripList,
   // TripShow, TripEdit
-} from "./pages/trips";
+} from './pages/trips';
 import {
   DriverList,
   // DriverShow,
   // DriverEdit,
   // DriverCreate,
-} from "./pages/drivers";
+} from './pages/drivers';
 import {
   CustomerList,
 
   // CustomerShow, CustomerEdit
-} from "./pages/customers";
+} from './pages/customers';
 import {
   SubscriptionList,
   // SubscriptionShow,
   // SubscriptionEdit,
   // SubscriptionCreate,
-} from "./pages/subscriptions";
+} from './pages/subscriptions';
 import {
   PaymentList,
   //  PaymentShow
-} from "./pages/payments";
+} from './pages/payments';
 import {
   VehicleList,
   // VehicleShow, VehicleEdit
-} from "./pages/vehicles";
-import { NotificationList, NotificationCreate } from "./pages/notifications";
-import { SystemSettings } from "./pages/settings";
+} from './pages/vehicles';
+import { NotificationList, NotificationCreate } from './pages/notifications';
+import { SystemSettings } from './pages/settings';
 import {
   AdminList,
-  // AdminShow, AdminEdit,
+  //  AdminShow,
+  AdminEdit,
   AdminCreate,
-} from "./pages/admins";
-import { AuditLogs } from "./pages/audit";
+} from './pages/admins';
+import { AuditLogs } from './pages/audit';
 
 // Import auth components
-import { AdminLogin } from "./pages/auth/AdminLogin";
-import { AdminForgotPassword } from "./pages/auth/AdminForgotPassword";
-import { AdminResetPassword } from "./pages/auth/AdminResetPassword";
-import { SupportTicketList } from "./pages/support";
-import { Locations } from "./pages/locations"; // Updated import
+import { AdminLogin } from './pages/auth/AdminLogin';
+import { AdminForgotPassword } from './pages/auth/AdminForgotPassword';
+import { AdminResetPassword } from './pages/auth/AdminResetPassword';
+import { SupportTicketList } from './pages/support';
+import { Locations } from './pages/locations'; // Updated import
 
 export const client = new Client({
-  url: import.meta.env.VITE_API_URL || "http://localhost:8000/graphql",
+  url: import.meta.env.VITE_API_URL || 'http://localhost:8000/graphql',
   exchanges: [fetchExchange],
   fetchOptions: () => {
     return {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
       },
     };
   },
@@ -140,7 +141,7 @@ const authProvider: AuthProvider = {
       // Better error handling to extract the actual error message
       if (result.error) {
         // Extract the detailed error message from GraphQL errors
-        let errorMessage = "Login failed";
+        let errorMessage = 'Login failed';
 
         if (
           result.error.graphQLErrors &&
@@ -151,7 +152,7 @@ const authProvider: AuthProvider = {
           // Check for detailed message in extensions
           if (
             graphQLError.extensions?.details &&
-            typeof graphQLError.extensions.details === "string"
+            typeof graphQLError.extensions.details === 'string'
           ) {
             errorMessage = graphQLError.extensions.details;
           } else if (graphQLError.message) {
@@ -161,12 +162,12 @@ const authProvider: AuthProvider = {
           errorMessage = result.error.message;
         }
 
-        console.error("Login error:", errorMessage);
+        console.error('Login error:', errorMessage);
 
         return {
           success: false,
           error: {
-            name: "Login Error",
+            name: 'Login Error',
             message: errorMessage, // This will now show "Invalid credentials" or other specific error
           },
         };
@@ -176,8 +177,8 @@ const authProvider: AuthProvider = {
         return {
           success: false,
           error: {
-            name: "Login Error",
-            message: "Login failed. Please try again.",
+            name: 'Login Error',
+            message: 'Login failed. Please try again.',
           },
         };
       }
@@ -189,38 +190,38 @@ const authProvider: AuthProvider = {
         return {
           success: false,
           error: {
-            name: "Account Inactive",
+            name: 'Account Inactive',
             message:
-              "Your admin account has been deactivated. Please contact support.",
+              'Your admin account has been deactivated. Please contact support.',
           },
         };
       }
 
       // Store authentication data
-      localStorage.setItem("token", token);
-      localStorage.setItem("admin", JSON.stringify(admin));
-      localStorage.setItem("expiresAt", expiresAt);
+      localStorage.setItem('token', token);
+      localStorage.setItem('admin', JSON.stringify(admin));
+      localStorage.setItem('expiresAt', expiresAt);
 
       return {
         success: true,
-        redirectTo: "/dashboard",
+        redirectTo: '/dashboard',
       };
     } catch (error: any) {
-      console.error("Unexpected error during login:", error);
+      console.error('Unexpected error during login:', error);
 
       return {
         success: false,
         error: {
-          name: "Login Error",
+          name: 'Login Error',
           message:
-            error.message || "An unexpected error occurred. Please try again.",
+            error.message || 'An unexpected error occurred. Please try again.',
         },
       };
     }
   },
 
   logout: async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
 
     if (token) {
       try {
@@ -236,33 +237,33 @@ const authProvider: AuthProvider = {
         const result = await client.mutation(mutation, {}).toPromise();
 
         if (result.error) {
-          console.error("Logout error:", result.error);
+          console.error('Logout error:', result.error);
         }
       } catch (error) {
-        console.error("Logout error:", error);
+        console.error('Logout error:', error);
       }
     }
 
     // Clear local storage regardless of logout API success
-    localStorage.removeItem("token");
-    localStorage.removeItem("admin");
-    localStorage.removeItem("expiresAt");
+    localStorage.removeItem('token');
+    localStorage.removeItem('admin');
+    localStorage.removeItem('expiresAt');
 
     return {
       success: true,
-      redirectTo: "/auth/login",
+      redirectTo: '/auth/login',
     };
   },
 
   check: async () => {
-    const token = localStorage.getItem("token");
-    const admin = localStorage.getItem("admin");
-    const expiresAt = localStorage.getItem("expiresAt");
+    const token = localStorage.getItem('token');
+    const admin = localStorage.getItem('admin');
+    const expiresAt = localStorage.getItem('expiresAt');
 
     if (!token || !admin || !expiresAt) {
       return {
         authenticated: false,
-        redirectTo: "/auth/login",
+        redirectTo: '/auth/login',
       };
     }
 
@@ -271,16 +272,16 @@ const authProvider: AuthProvider = {
     const expiry = new Date(expiresAt).getTime();
 
     if (now >= expiry) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("admin");
-      localStorage.removeItem("expiresAt");
+      localStorage.removeItem('token');
+      localStorage.removeItem('admin');
+      localStorage.removeItem('expiresAt');
 
       return {
         authenticated: false,
-        redirectTo: "/auth/login",
+        redirectTo: '/auth/login',
         error: {
-          message: "Your session has expired. Please login again.",
-          name: "Session Expired",
+          message: 'Your session has expired. Please login again.',
+          name: 'Session Expired',
         },
       };
     }
@@ -289,28 +290,28 @@ const authProvider: AuthProvider = {
     try {
       const adminData = JSON.parse(admin);
       if (!adminData.isActive) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("admin");
-        localStorage.removeItem("expiresAt");
+        localStorage.removeItem('token');
+        localStorage.removeItem('admin');
+        localStorage.removeItem('expiresAt');
 
         return {
           authenticated: false,
-          redirectTo: "/auth/login",
+          redirectTo: '/auth/login',
           error: {
-            message: "Your account has been deactivated.",
-            name: "Account Inactive",
+            message: 'Your account has been deactivated.',
+            name: 'Account Inactive',
           },
         };
       }
     } catch (e) {
       // If we can't parse admin data, logout
-      localStorage.removeItem("token");
-      localStorage.removeItem("admin");
-      localStorage.removeItem("expiresAt");
+      localStorage.removeItem('token');
+      localStorage.removeItem('admin');
+      localStorage.removeItem('expiresAt');
 
       return {
         authenticated: false,
-        redirectTo: "/auth/login",
+        redirectTo: '/auth/login',
       };
     }
 
@@ -320,7 +321,7 @@ const authProvider: AuthProvider = {
   },
 
   getPermissions: async () => {
-    const admin = localStorage.getItem("admin");
+    const admin = localStorage.getItem('admin');
     if (!admin) return null;
 
     try {
@@ -332,7 +333,7 @@ const authProvider: AuthProvider = {
   },
 
   getIdentity: async () => {
-    const admin = localStorage.getItem("admin");
+    const admin = localStorage.getItem('admin');
     if (!admin) return null;
 
     try {
@@ -353,16 +354,16 @@ const authProvider: AuthProvider = {
   onError: async (error) => {
     // Handle 401 Unauthorized errors
     if (error.statusCode === 401 || error.code === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("admin");
-      localStorage.removeItem("expiresAt");
+      localStorage.removeItem('token');
+      localStorage.removeItem('admin');
+      localStorage.removeItem('expiresAt');
 
       return {
         logout: true,
-        redirectTo: "/auth/login",
+        redirectTo: '/auth/login',
         error: {
-          message: "Your session has expired. Please login again.",
-          name: "Session Expired",
+          message: 'Your session has expired. Please login again.',
+          name: 'Session Expired',
         },
       };
     }
@@ -371,8 +372,8 @@ const authProvider: AuthProvider = {
     if (error.statusCode === 403 || error.code === 403) {
       return {
         error: {
-          message: "You do not have permission to perform this action.",
-          name: "Access Denied",
+          message: 'You do not have permission to perform this action.',
+          name: 'Access Denied',
         },
       };
     }
@@ -396,97 +397,97 @@ function App() {
               options={{
                 syncWithLocation: true,
                 warnWhenUnsavedChanges: true,
-                projectId: "yalla-ride-admin",
+                projectId: 'yalla-ride-admin',
                 title: {
-                  text: "Yalla Ride Admin",
-                  icon: "🚗",
+                  text: 'Yalla Ride Admin',
+                  icon: '🚗',
                 },
               }}
               resources={[
                 {
-                  name: "dashboard",
-                  list: "/dashboard",
+                  name: 'dashboard',
+                  list: '/dashboard',
                   meta: {
-                    label: "Dashboard",
+                    label: 'Dashboard',
                     icon: <DashboardOutlined />,
                   },
                 },
                 {
-                  name: "admins",
-                  list: "/admins",
+                  name: 'admins',
+                  list: '/admins',
                   // show: '/admins/show/:id',
                   // edit: '/admins/edit/:id',
-                  create: "/admins/create",
+                  create: '/admins/create',
                   meta: {
-                    label: "Admin Users",
+                    label: 'Admin Users',
                     icon: <TeamOutlined />,
                   },
                 },
                 {
-                  name: "drivers",
-                  list: "/drivers",
+                  name: 'drivers',
+                  list: '/drivers',
                   // show: '/drivers/show/:id',
                   // edit: '/drivers/edit/:id',
-                  create: "/drivers/create",
+                  create: '/drivers/create',
                   meta: {
-                    label: "Drivers",
+                    label: 'Drivers',
                     icon: <CarOutlined />,
                   },
                 },
                 {
-                  name: "customers",
-                  list: "/customers",
+                  name: 'customers',
+                  list: '/customers',
                   // show: '/customers/show/:id',
                   // edit: '/customers/edit/:id',
                   meta: {
-                    label: "Customers",
+                    label: 'Customers',
                     icon: <TeamOutlined />,
                   },
                 },
                 {
-                  name: "trips",
-                  list: "/trips",
+                  name: 'trips',
+                  list: '/trips',
                   // show: '/trips/show/:id',
                   // edit: '/trips/edit/:id',
                   meta: {
-                    label: "Trips",
+                    label: 'Trips',
                     icon: <EnvironmentOutlined />,
                   },
                 },
                 {
-                  name: "vehicles",
-                  list: "/vehicles",
+                  name: 'vehicles',
+                  list: '/vehicles',
                   // show: '/vehicles/show/:id',
                   // edit: '/vehicles/edit/:id',
                   meta: {
-                    label: "Vehicles",
+                    label: 'Vehicles',
                     icon: <CarFilled />,
                   },
                 },
                 {
-                  name: "payments",
-                  list: "/payments",
+                  name: 'payments',
+                  list: '/payments',
                   // show: '/payments/show/:id',
                   meta: {
-                    label: "Payments",
+                    label: 'Payments',
                     icon: <CreditCardOutlined />,
                   },
                 },
                 {
-                  name: "subscriptions",
-                  list: "/subscriptions",
+                  name: 'subscriptions',
+                  list: '/subscriptions',
                   // show: '/subscriptions/show/:id',
                   // edit: '/subscriptions/edit/:id',
-                  create: "/subscriptions/create",
+                  create: '/subscriptions/create',
                   meta: {
-                    label: "Subscriptions",
+                    label: 'Subscriptions',
                     icon: <FileTextOutlined />,
                   },
                 },
                 {
-                  name: "locations",
-                  list: "/locations",
-                  meta: { label: "Locations", icon: <EnvironmentOutlined /> },
+                  name: 'locations',
+                  list: '/locations',
+                  meta: { label: 'Locations', icon: <EnvironmentOutlined /> },
                 },
                 // {
                 //   name: 'notifications',
@@ -498,28 +499,28 @@ function App() {
                 //   },
                 // },
                 {
-                  name: "audit-logs",
-                  list: "/audit-logs",
+                  name: 'audit-logs',
+                  list: '/audit-logs',
                   meta: {
-                    label: "Audit Logs",
+                    label: 'Audit Logs',
                     icon: <AuditOutlined />,
                   },
                 },
 
                 {
-                  name: "support",
-                  list: "/support",
+                  name: 'support',
+                  list: '/support',
                   meta: {
-                    label: "Support",
+                    label: 'Support',
                     icon: <CustomerServiceOutlined />,
                   },
                 },
 
                 {
-                  name: "settings",
-                  list: "/settings",
+                  name: 'settings',
+                  list: '/settings',
                   meta: {
-                    label: "Settings",
+                    label: 'Settings',
                     icon: <SettingOutlined />,
                   },
                 },
@@ -529,19 +530,19 @@ function App() {
                 {/* Public authentication routes */}
                 <Route
                   element={
-                    <Authenticated key="auth-routes" fallback={<Outlet />}>
-                      <NavigateToResource resource="dashboard" />
+                    <Authenticated key='auth-routes' fallback={<Outlet />}>
+                      <NavigateToResource resource='dashboard' />
                     </Authenticated>
                   }
                 >
-                  <Route path="/auth">
-                    <Route path="login" element={<AdminLogin />} />
+                  <Route path='/auth'>
+                    <Route path='login' element={<AdminLogin />} />
                     <Route
-                      path="forgot-password"
+                      path='forgot-password'
                       element={<AdminForgotPassword />}
                     />
                     <Route
-                      path="reset-password"
+                      path='reset-password'
                       element={<AdminResetPassword />}
                     />
                   </Route>
@@ -551,8 +552,8 @@ function App() {
                 <Route
                   element={
                     <Authenticated
-                      key="authenticated-routes"
-                      redirectOnFail="/auth/login"
+                      key='authenticated-routes'
+                      redirectOnFail='/auth/login'
                     >
                       <ThemedLayoutV2>
                         <Outlet />
@@ -561,18 +562,18 @@ function App() {
                   }
                 >
                   {/* Dashboard */}
-                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path='/dashboard' element={<DashboardPage />} />
 
                   {/* Admin routes */}
-                  <Route path="/admins">
+                  <Route path='/admins'>
                     <Route index element={<AdminList />} />
                     {/* <Route path='show/:id' element={<AdminShow />} /> */}
-                    {/* <Route path='edit/:id' element={<AdminEdit />} /> */}
-                    <Route path="create" element={<AdminCreate />} />
+                    <Route path="edit/:id" element={<AdminEdit />} />
+                    <Route path='create' element={<AdminCreate />} />
                   </Route>
 
                   {/* Driver routes */}
-                  <Route path="/drivers">
+                  <Route path='/drivers'>
                     <Route index element={<DriverList />} />
                     {/* <Route path='show/:id' element={<DriverShow />} /> */}
                     {/* <Route path='edit/:id' element={<DriverEdit />} /> */}
@@ -580,67 +581,67 @@ function App() {
                   </Route>
 
                   {/* Customer routes */}
-                  <Route path="/customers">
+                  <Route path='/customers'>
                     <Route index element={<CustomerList />} />
                     {/* <Route path='show/:id' element={<CustomerShow />} /> */}
                     {/* <Route path='edit/:id' element={<CustomerEdit />} /> */}
                   </Route>
 
                   {/* Trip routes */}
-                  <Route path="/trips">
+                  <Route path='/trips'>
                     <Route index element={<TripList />} />
                     {/* <Route path='show/:id' element={<TripShow />} /> */}
                     {/* <Route path='edit/:id' element={<TripEdit />} /> */}
                   </Route>
 
                   {/* Vehicle routes */}
-                  <Route path="/vehicles">
+                  <Route path='/vehicles'>
                     <Route index element={<VehicleList />} />
                     {/* <Route path='show/:id' element={<VehicleShow />} /> */}
                     {/* <Route path='edit/:id' element={<VehicleEdit />} /> */}
                   </Route>
 
                   {/* Payment routes */}
-                  <Route path="/payments">
+                  <Route path='/payments'>
                     <Route index element={<PaymentList />} />
                     {/* <Route path='show/:id' element={<PaymentShow />} /> */}
                   </Route>
 
                   {/* Subscription routes */}
-                  <Route path="/subscriptions">
+                  <Route path='/subscriptions'>
                     <Route index element={<SubscriptionList />} />
                     {/* <Route path='show/:id' element={<SubscriptionShow />} /> */}
                     {/* <Route path='edit/:id' element={<SubscriptionEdit />} /> */}
                     {/* <Route path='create' element={<SubscriptionCreate />} /> */}
                   </Route>
-                  <Route path="/locations">
+                  <Route path='/locations'>
                     <Route index element={<Locations />} />
                   </Route>
 
                   {/* Notification routes */}
-                  <Route path="/notifications">
+                  <Route path='/notifications'>
                     <Route index element={<NotificationList />} />
-                    <Route path="create" element={<NotificationCreate />} />
+                    <Route path='create' element={<NotificationCreate />} />
                   </Route>
 
                   {/* Audit logs route */}
-                  <Route path="/audit-logs" element={<AuditLogs />} />
+                  <Route path='/audit-logs' element={<AuditLogs />} />
 
-                  <Route path="/support">
+                  <Route path='/support'>
                     <Route index element={<SupportTicketList />} />
                   </Route>
 
                   {/* Settings route */}
-                  <Route path="/settings" element={<SystemSettings />} />
+                  <Route path='/settings' element={<SystemSettings />} />
 
                   {/* Catch all */}
-                  <Route path="*" element={<ErrorComponent />} />
+                  <Route path='*' element={<ErrorComponent />} />
                 </Route>
 
                 {/* Root redirect */}
                 <Route
-                  path="/"
-                  element={<NavigateToResource resource="dashboard" />}
+                  path='/'
+                  element={<NavigateToResource resource='dashboard' />}
                 />
               </Routes>
               <UnsavedChangesNotifier />
