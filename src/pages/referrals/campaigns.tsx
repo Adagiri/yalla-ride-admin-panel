@@ -57,6 +57,7 @@ import {
   UpdateCampaignInput,
   CampaignAnalytics,
 } from '../../types/referral.types';
+import { CampaignFormEnhanced } from './campaign-form-enhanced';
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -111,26 +112,24 @@ export const CampaignList: React.FC = () => {
   const handleCreate = async (values: any) => {
     try {
       const input: CreateCampaignInput = {
-        ...values,
+        name: values.name,
+        description: values.description,
+        type: values.type,
         startDate: values.startDate.toISOString(),
         endDate: values.endDate ? values.endDate.toISOString() : undefined,
-        minWalletBalance: values.minWalletBalance * 100, // Convert to kobo
-        referrerRewardValue:
-          values.referrerRewardType === RewardType.WALLET_CREDIT ||
-          values.referrerRewardType === RewardType.DISCOUNT_FIXED
-            ? values.referrerRewardValue * 100
-            : values.referrerRewardValue,
-        referrerRewardMaxValue: values.referrerRewardMaxValue
-          ? values.referrerRewardMaxValue * 100
-          : undefined,
-        refereeRewardValue:
-          values.refereeRewardType === RewardType.WALLET_CREDIT ||
-          values.refereeRewardType === RewardType.DISCOUNT_FIXED
-            ? values.refereeRewardValue * 100
-            : values.refereeRewardValue,
-        refereeRewardMaxValue: values.refereeRewardMaxValue
-          ? values.refereeRewardMaxValue * 100
-          : undefined,
+        eligibleUserTypes: values.eligibleUserTypes || [],
+
+        // NEW: Array-based constraints and rewards
+        constraints: values.constraints || [],
+        referrerRewards: values.referrerRewards || [],
+        refereeRewards: values.refereeRewards || [],
+
+        // Limits and settings
+        maxTotalRedemptions: values.maxTotalRedemptions,
+        maxRedemptionsPerUser: values.maxRedemptionsPerUser,
+        rewardExpiryDays: values.rewardExpiryDays,
+        autoApplyReward: values.autoApplyReward || false,
+        termsAndConditions: values.termsAndConditions,
       };
 
       const result = await client
@@ -159,28 +158,24 @@ export const CampaignList: React.FC = () => {
 
     try {
       const input: UpdateCampaignInput = {
-        ...values,
+        name: values.name,
+        description: values.description,
+        type: values.type,
         startDate: values.startDate ? values.startDate.toISOString() : undefined,
         endDate: values.endDate ? values.endDate.toISOString() : undefined,
-        minWalletBalance: values.minWalletBalance
-          ? values.minWalletBalance * 100
-          : undefined,
-        referrerRewardValue:
-          values.referrerRewardType === RewardType.WALLET_CREDIT ||
-          values.referrerRewardType === RewardType.DISCOUNT_FIXED
-            ? values.referrerRewardValue * 100
-            : values.referrerRewardValue,
-        referrerRewardMaxValue: values.referrerRewardMaxValue
-          ? values.referrerRewardMaxValue * 100
-          : undefined,
-        refereeRewardValue:
-          values.refereeRewardType === RewardType.WALLET_CREDIT ||
-          values.refereeRewardType === RewardType.DISCOUNT_FIXED
-            ? values.refereeRewardValue * 100
-            : values.refereeRewardValue,
-        refereeRewardMaxValue: values.refereeRewardMaxValue
-          ? values.refereeRewardMaxValue * 100
-          : undefined,
+        eligibleUserTypes: values.eligibleUserTypes,
+
+        // NEW: Array-based constraints and rewards
+        constraints: values.constraints || [],
+        referrerRewards: values.referrerRewards || [],
+        refereeRewards: values.refereeRewards || [],
+
+        // Limits and settings
+        maxTotalRedemptions: values.maxTotalRedemptions,
+        maxRedemptionsPerUser: values.maxRedemptionsPerUser,
+        rewardExpiryDays: values.rewardExpiryDays,
+        autoApplyReward: values.autoApplyReward,
+        termsAndConditions: values.termsAndConditions,
       };
 
       const result = await client
@@ -297,9 +292,20 @@ export const CampaignList: React.FC = () => {
   const openEditModal = (campaign: ReferralCampaign) => {
     setSelectedCampaign(campaign);
     editForm.setFieldsValue({
-      ...campaign,
+      name: campaign.name,
+      description: campaign.description,
+      type: campaign.type,
       startDate: dayjs(campaign.startDate),
       endDate: campaign.endDate ? dayjs(campaign.endDate) : undefined,
+      eligibleUserTypes: campaign.eligibleUserTypes,
+      constraints: campaign.constraints || [],
+      referrerRewards: campaign.referrerRewards || [],
+      refereeRewards: campaign.refereeRewards || [],
+      maxTotalRedemptions: campaign.maxTotalRedemptions,
+      maxRedemptionsPerUser: campaign.maxRedemptionsPerUser,
+      rewardExpiryDays: campaign.rewardExpiryDays,
+      autoApplyReward: campaign.autoApplyReward,
+      termsAndConditions: campaign.termsAndConditions,
     });
     setEditModalVisible(true);
   };
@@ -524,9 +530,12 @@ export const CampaignList: React.FC = () => {
           createForm.resetFields();
         }}
         onOk={() => createForm.submit()}
-        width={800}
+        width={900}
+        style={{ top: 20 }}
       >
-        <CampaignForm form={createForm} onFinish={handleCreate} />
+        <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+          <CampaignFormEnhanced form={createForm} onFinish={handleCreate} />
+        </div>
       </Modal>
 
       {/* Edit Campaign Modal */}
@@ -539,9 +548,12 @@ export const CampaignList: React.FC = () => {
           editForm.resetFields();
         }}
         onOk={() => editForm.submit()}
-        width={800}
+        width={900}
+        style={{ top: 20 }}
       >
-        <CampaignForm form={editForm} onFinish={handleUpdate} isEdit />
+        <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+          <CampaignFormEnhanced form={editForm} onFinish={handleUpdate} isEdit />
+        </div>
       </Modal>
 
       {/* Campaign Details Drawer */}

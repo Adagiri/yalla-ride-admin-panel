@@ -49,9 +49,73 @@ export enum UserType {
   DRIVER = 'DRIVER',
 }
 
+export enum ValueType {
+  NUMBER = 'NUMBER',
+  BOOLEAN = 'BOOLEAN',
+  PERCENTAGE = 'PERCENTAGE',
+  NONE = 'NONE',
+}
+
+export enum AppliesTo {
+  REFERRER = 'REFERRER',
+  REFEREE = 'REFEREE',
+  BOTH = 'BOTH',
+}
+
 // ===============================
 // INTERFACES
 // ===============================
+
+export interface ConstraintDefinition {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  valueType: ValueType;
+  defaultValue?: any;
+  appliesTo: AppliesTo;
+  unit?: string;
+  minValue?: number;
+  maxValue?: number;
+  isActive: boolean;
+  isSystemDefined: boolean;
+  createdBy?: string;
+  lastModifiedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RewardDefinition {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  valueType: ValueType;
+  defaultValue?: any;
+  unit?: string;
+  minValue?: number;
+  maxValue?: number;
+  requiresMaxValue: boolean;
+  isActive: boolean;
+  isSystemDefined: boolean;
+  createdBy?: string;
+  lastModifiedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CampaignConstraint {
+  constraintType: string;
+  appliesTo: AppliesTo;
+  value?: number | boolean;
+  userTypes?: UserType[];
+}
+
+export interface CampaignReward {
+  rewardType: string;
+  value: number;
+  maxValue?: number;
+}
 
 export interface ReferralCode {
   id: string;
@@ -121,16 +185,19 @@ export interface ReferralCampaign {
   startDate: string;
   endDate?: string;
   isActive: boolean;
-  minWalletBalance: number;
 
-  // Referrer rewards
-  referrerRewardType: RewardType;
-  referrerRewardValue: number;
+  // NEW: Array-based constraints and rewards
+  constraints: CampaignConstraint[];
+  referrerRewards: CampaignReward[];
+  refereeRewards: CampaignReward[];
+
+  // LEGACY: Keep for backwards compatibility with existing data
+  minWalletBalance?: number;
+  referrerRewardType?: RewardType;
+  referrerRewardValue?: number;
   referrerRewardMaxValue?: number;
-
-  // Referee rewards
-  refereeRewardType: RewardType;
-  refereeRewardValue: number;
+  refereeRewardType?: RewardType;
+  refereeRewardValue?: number;
   refereeRewardMaxValue?: number;
 
   // Limits
@@ -207,22 +274,51 @@ export interface ReferralRewardSummary {
 // INPUT TYPES
 // ===============================
 
+export interface CreateConstraintDefinitionInput {
+  type: string;
+  name: string;
+  description: string;
+  valueType: ValueType;
+  defaultValue?: any;
+  appliesTo: AppliesTo;
+  unit?: string;
+  minValue?: number;
+  maxValue?: number;
+  isActive?: boolean;
+}
+
+export interface CreateRewardDefinitionInput {
+  type: string;
+  name: string;
+  description: string;
+  valueType: ValueType;
+  defaultValue?: any;
+  unit?: string;
+  minValue?: number;
+  maxValue?: number;
+  requiresMaxValue?: boolean;
+  isActive?: boolean;
+}
+
 export interface CreateCampaignInput {
   name: string;
   description?: string;
   type: CampaignType;
   startDate: string;
   endDate?: string;
-  minWalletBalance: number;
 
-  // Referrer rewards
-  referrerRewardType: RewardType;
-  referrerRewardValue: number;
+  // NEW: Array-based constraints and rewards
+  constraints?: CampaignConstraint[];
+  referrerRewards?: CampaignReward[];
+  refereeRewards?: CampaignReward[];
+
+  // LEGACY: Keep for backwards compatibility
+  minWalletBalance?: number;
+  referrerRewardType?: RewardType;
+  referrerRewardValue?: number;
   referrerRewardMaxValue?: number;
-
-  // Referee rewards
-  refereeRewardType: RewardType;
-  refereeRewardValue: number;
+  refereeRewardType?: RewardType;
+  refereeRewardValue?: number;
   refereeRewardMaxValue?: number;
 
   // Limits
@@ -247,14 +343,17 @@ export interface UpdateCampaignInput {
   endDate?: string;
   isActive?: boolean;
   status?: CampaignStatus;
-  minWalletBalance?: number;
 
-  // Referrer rewards
+  // NEW: Array-based constraints and rewards
+  constraints?: CampaignConstraint[];
+  referrerRewards?: CampaignReward[];
+  refereeRewards?: CampaignReward[];
+
+  // LEGACY: Keep for backwards compatibility
+  minWalletBalance?: number;
   referrerRewardType?: RewardType;
   referrerRewardValue?: number;
   referrerRewardMaxValue?: number;
-
-  // Referee rewards
   refereeRewardType?: RewardType;
   refereeRewardValue?: number;
   refereeRewardMaxValue?: number;
