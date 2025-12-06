@@ -90,6 +90,100 @@ export const REFERRAL_REWARD_FRAGMENT = `
 // QUERIES
 // ===============================
 
+// Constraint Definition Queries
+export const LIST_CONSTRAINT_DEFINITIONS = `
+  query ListConstraintDefinitions($activeOnly: Boolean) {
+    listConstraintDefinitions(activeOnly: $activeOnly) {
+      id
+      type
+      name
+      description
+      valueType
+      defaultValue
+      appliesTo
+      unit
+      minValue
+      maxValue
+      isActive
+      isSystemDefined
+      createdBy
+      lastModifiedBy
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_CONSTRAINT_DEFINITION = `
+  query GetConstraintDefinition($id: ID!) {
+    getConstraintDefinition(id: $id) {
+      id
+      type
+      name
+      description
+      valueType
+      defaultValue
+      appliesTo
+      unit
+      minValue
+      maxValue
+      isActive
+      isSystemDefined
+      createdBy
+      lastModifiedBy
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+// Reward Definition Queries
+export const LIST_REWARD_DEFINITIONS = `
+  query ListRewardDefinitions($activeOnly: Boolean) {
+    listRewardDefinitions(activeOnly: $activeOnly) {
+      id
+      type
+      name
+      description
+      valueType
+      defaultValue
+      unit
+      minValue
+      maxValue
+      requiresMaxValue
+      isActive
+      isSystemDefined
+      createdBy
+      lastModifiedBy
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_REWARD_DEFINITION = `
+  query GetRewardDefinition($id: ID!) {
+    getRewardDefinition(id: $id) {
+      id
+      type
+      name
+      description
+      valueType
+      defaultValue
+      unit
+      minValue
+      maxValue
+      requiresMaxValue
+      isActive
+      isSystemDefined
+      createdBy
+      lastModifiedBy
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
 export const LIST_REFERRAL_CAMPAIGNS = `
   query ListReferralCampaigns($filter: CampaignStatusEnum, $pagination: PaginationInput) {
     listReferralCampaigns(filter: $filter, pagination: $pagination) {
@@ -130,6 +224,22 @@ export const GET_REFERRAL_CAMPAIGN = `
       startDate
       endDate
       isActive
+      constraints {
+        constraintType
+        appliesTo
+        value
+        userTypes
+      }
+      referrerRewards {
+        rewardType
+        value
+        maxValue
+      }
+      refereeRewards {
+        rewardType
+        value
+        maxValue
+      }
       minWalletBalance
       referrerRewardType
       referrerRewardValue
@@ -429,5 +539,127 @@ export const CANCEL_REWARD = `
       status
       updatedAt
     }
+  }
+`;
+
+// Constraint Definition Mutations
+export const CREATE_CONSTRAINT_DEFINITION = `
+  mutation CreateConstraintDefinition($input: CreateConstraintDefinitionInput!) {
+    createConstraintDefinition(input: $input) {
+      id
+      type
+      name
+      description
+      valueType
+      defaultValue
+      appliesTo
+      unit
+      minValue
+      maxValue
+      isActive
+      isSystemDefined
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_CONSTRAINT_DEFINITION = `
+  mutation UpdateConstraintDefinition($id: ID!, $input: CreateConstraintDefinitionInput!) {
+    updateConstraintDefinition(id: $id, input: $input) {
+      id
+      type
+      name
+      description
+      valueType
+      defaultValue
+      appliesTo
+      unit
+      minValue
+      maxValue
+      isActive
+      isSystemDefined
+      updatedAt
+    }
+  }
+`;
+
+export const TOGGLE_CONSTRAINT_DEFINITION = `
+  mutation ToggleConstraintDefinition($id: ID!, $isActive: Boolean!) {
+    toggleConstraintDefinition(id: $id, isActive: $isActive) {
+      id
+      isActive
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_CONSTRAINT_DEFINITION = `
+  mutation DeleteConstraintDefinition($id: ID!) {
+    deleteConstraintDefinition(id: $id)
+  }
+`;
+
+// Reward Definition Mutations
+export const CREATE_REWARD_DEFINITION = `
+  mutation CreateRewardDefinition($input: CreateRewardDefinitionInput!) {
+    createRewardDefinition(input: $input) {
+      id
+      type
+      name
+      description
+      valueType
+      defaultValue
+      unit
+      minValue
+      maxValue
+      requiresMaxValue
+      isActive
+      isSystemDefined
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_REWARD_DEFINITION = `
+  mutation UpdateRewardDefinition($id: ID!, $input: CreateRewardDefinitionInput!) {
+    updateRewardDefinition(id: $id, input: $input) {
+      id
+      type
+      name
+      description
+      valueType
+      defaultValue
+      unit
+      minValue
+      maxValue
+      requiresMaxValue
+      isActive
+      isSystemDefined
+      updatedAt
+    }
+  }
+`;
+
+export const TOGGLE_REWARD_DEFINITION = `
+  mutation ToggleRewardDefinition($id: ID!, $isActive: Boolean!) {
+    toggleRewardDefinition(id: $id, isActive: $isActive) {
+      id
+      isActive
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_REWARD_DEFINITION = `
+  mutation DeleteRewardDefinition($id: ID!) {
+    deleteRewardDefinition(id: $id)
+  }
+`;
+
+export const SEED_REFERRAL_DEFINITIONS = `
+  mutation SeedReferralDefinitions {
+    seedReferralDefinitions
   }
 `;

@@ -44,6 +44,8 @@ import {
   ShareAltOutlined,
   GiftOutlined,
   BarChartOutlined,
+  AppstoreOutlined,
+  TagsOutlined,
 } from "@ant-design/icons";
 
 // Import pages
@@ -98,6 +100,8 @@ import {
   TransactionList,
   RewardList,
   ReferralAnalyticsDashboard,
+  ConstraintDefinitions,
+  RewardDefinitions,
 } from "./pages/referrals";
 
 export const client = new Client({
@@ -577,6 +581,24 @@ function App() {
                     parent: "referrals",
                   },
                 },
+                {
+                  name: "referrals/constraint-definitions",
+                  list: "/referrals/constraint-definitions",
+                  meta: {
+                    label: "Constraint Types",
+                    icon: <AppstoreOutlined />,
+                    parent: "referrals",
+                  },
+                },
+                {
+                  name: "referrals/reward-definitions",
+                  list: "/referrals/reward-definitions",
+                  meta: {
+                    label: "Reward Types",
+                    icon: <TagsOutlined />,
+                    parent: "referrals",
+                  },
+                },
               ]}
             >
               <Routes>
@@ -699,6 +721,8 @@ function App() {
                     <Route path="transactions" element={<TransactionList />} />
                     <Route path="rewards" element={<RewardList />} />
                     <Route path="analytics" element={<ReferralAnalyticsDashboard />} />
+                    <Route path="constraint-definitions" element={<ConstraintDefinitions />} />
+                    <Route path="reward-definitions" element={<RewardDefinitions />} />
                   </Route>
 
                   {/* Catch all */}

@@ -7,3 +7,5 @@ export { CampaignList } from './campaigns';
 export { TransactionList } from './transactions';
 export { RewardList } from './rewards';
 export { ReferralAnalyticsDashboard } from './analytics';
+export { ConstraintDefinitions } from './constraint-definitions';
+export { RewardDefinitions } from './reward-definitions';
