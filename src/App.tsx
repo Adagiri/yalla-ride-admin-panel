@@ -16,15 +16,14 @@ import routerProvider, {
   CatchAllNavigate,
   UnsavedChangesNotifier,
   DocumentTitleHandler,
-} from "@refinedev/react-router-v6";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import { ConfigProvider, App as AntdApp } from "antd";
-import "@refinedev/antd/dist/reset.css";
+} from '@refinedev/react-router-v6';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { ConfigProvider, App as AntdApp } from 'antd';
+import '@refinedev/antd/dist/reset.css';
 
-import { Client, fetchExchange } from "@urql/core";
-import { Provider } from "urql";
-import { createCustomDataProvider } from "./providers/dataProvider";
-
+import { Client, fetchExchange } from '@urql/core';
+import { Provider } from 'urql';
+import { createCustomDataProvider } from './providers/dataProvider';
 
 // Import Ant Design Icons for resources
 import {
@@ -40,75 +39,74 @@ import {
   SettingOutlined,
   AuditOutlined,
   CustomerServiceOutlined,
-
   ShareAltOutlined,
   GiftOutlined,
   BarChartOutlined,
-} from "@ant-design/icons";
+} from '@ant-design/icons';
 
 // Import pages
-import { DashboardPage } from "./pages/dashboard";
+import { DashboardPage } from './pages/dashboard';
 import {
   TripList,
   // TripShow, TripEdit
-} from "./pages/trips";
+} from './pages/trips';
 import {
   DriverList,
-  // DriverShow,
-  // DriverEdit,
   // DriverCreate,
 } from './pages/drivers';
+import { DriverShow } from './pages/drivers/show';
+import { DriverEdit } from './pages/drivers/edit';
+
 import {
   CustomerList,
-
   // CustomerShow, CustomerEdit
-} from "./pages/customers";
+} from './pages/customers';
+
 import {
   SubscriptionList,
   // SubscriptionShow,
   // SubscriptionEdit,
   // SubscriptionCreate,
-} from "./pages/subscriptions";
+} from './pages/subscriptions';
 import {
   PaymentList,
   //  PaymentShow
-} from "./pages/payments";
+} from './pages/payments';
 import {
   VehicleList,
   // VehicleShow, VehicleEdit
-} from "./pages/vehicles";
-import { NotificationList, NotificationCreate } from "./pages/notifications";
-import { SystemSettings } from "./pages/settings";
+} from './pages/vehicles';
+import { NotificationList, NotificationCreate } from './pages/notifications';
+import { SystemSettings } from './pages/settings';
 import {
   AdminList,
   // AdminShow,
-   AdminEdit,
+  AdminEdit,
   AdminCreate,
-} from "./pages/admins";
-import { AuditLogs } from "./pages/audit";
+} from './pages/admins';
+import { AuditLogs } from './pages/audit';
 
 // Import auth components
-import { AdminLogin } from "./pages/auth/AdminLogin";
-import { AdminForgotPassword } from "./pages/auth/AdminForgotPassword";
-import { AdminResetPassword } from "./pages/auth/AdminResetPassword";
-import { SupportTicketList } from "./pages/support";
-import { Locations } from "./pages/locations"; // Updated import
+import { AdminLogin } from './pages/auth/AdminLogin';
+import { AdminForgotPassword } from './pages/auth/AdminForgotPassword';
+import { AdminResetPassword } from './pages/auth/AdminResetPassword';
+import { SupportTicketList } from './pages/support';
+import { Locations } from './pages/locations'; // Updated import
 import {
   CampaignList,
   TransactionList,
   RewardList,
   ReferralAnalyticsDashboard,
-} from "./pages/referrals";
+} from './pages/referrals';
 
 export const client = new Client({
-  url: import.meta.env.VITE_API_URL || "http://localhost:8000/graphql",
+  url: import.meta.env.VITE_API_URL || 'http://localhost:8000/graphql',
   exchanges: [fetchExchange],
   fetchOptions: () => {
     return {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "application/json",
-
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
       },
     };
   },
@@ -153,7 +151,7 @@ const authProvider: AuthProvider = {
       // Better error handling to extract the actual error message
       if (result.error) {
         // Extract the detailed error message from GraphQL errors
-        let errorMessage = "Login failed";
+        let errorMessage = 'Login failed';
         if (
           result.error.graphQLErrors &&
           result.error.graphQLErrors.length > 0
@@ -163,7 +161,7 @@ const authProvider: AuthProvider = {
           // Check for detailed message in extensions
           if (
             graphQLError.extensions?.details &&
-            typeof graphQLError.extensions.details === "string"
+            typeof graphQLError.extensions.details === 'string'
           ) {
             errorMessage = graphQLError.extensions.details;
           } else if (graphQLError.message) {
@@ -221,9 +219,9 @@ const authProvider: AuthProvider = {
       return {
         success: false,
         error: {
-          name: "Login Error",
+          name: 'Login Error',
           message:
-            error.message || "An unexpected error occurred. Please try again.",
+            error.message || 'An unexpected error occurred. Please try again.',
         },
       };
     }
@@ -249,7 +247,6 @@ const authProvider: AuthProvider = {
         }
       } catch (error) {
         console.error('Logout error:', error);
-
       }
     }
 
@@ -414,17 +411,17 @@ function App() {
               }}
               resources={[
                 {
-                  name: "dashboard",
-                  list: "/dashboard",
+                  name: 'dashboard',
+                  list: '/dashboard',
                   meta: {
-                    label: "Dashboard",
+                    label: 'Dashboard',
                     icon: <DashboardOutlined />,
                   },
                 },
                 {
                   name: 'admins',
                   list: '/admins',
-                  // show: '/admins/show/:id',
+                  show: '/admins/show/:id',
                   edit: '/admins/edit/:id',
                   create: '/admins/create',
                   meta: {
@@ -435,8 +432,8 @@ function App() {
                 {
                   name: 'drivers',
                   list: '/drivers',
-                  // show: '/drivers/show/:id',
-                  // edit: '/drivers/edit/:id',
+                  show: '/drivers/show/:id',
+                  edit: '/drivers/edit/:id',
                   create: '/drivers/create',
                   meta: {
                     label: 'Drivers',
@@ -447,8 +444,8 @@ function App() {
                 {
                   name: 'customers',
                   list: '/customers',
-                  // show: '/customers/show/:id',
-                  // edit: '/customers/edit/:id',
+                  show: '/customers/show/:id',
+                  edit: '/customers/edit/:id',
                   meta: {
                     label: 'Customers',
                     icon: <TeamOutlined />,
@@ -527,54 +524,54 @@ function App() {
                 },
 
                 {
-                  name: "settings",
-                  list: "/settings",
+                  name: 'settings',
+                  list: '/settings',
                   meta: {
-                    label: "Settings",
+                    label: 'Settings',
                     icon: <SettingOutlined />,
                   },
                 },
                 {
-                  name: "referrals",
+                  name: 'referrals',
                   meta: {
-                    label: "Referrals",
+                    label: 'Referrals',
                     icon: <ShareAltOutlined />,
                   },
                 },
                 {
-                  name: "referrals/campaigns",
-                  list: "/referrals/campaigns",
+                  name: 'referrals/campaigns',
+                  list: '/referrals/campaigns',
                   meta: {
-                    label: "Campaigns",
+                    label: 'Campaigns',
                     icon: <GiftOutlined />,
-                    parent: "referrals",
+                    parent: 'referrals',
                   },
                 },
                 {
-                  name: "referrals/transactions",
-                  list: "/referrals/transactions",
+                  name: 'referrals/transactions',
+                  list: '/referrals/transactions',
                   meta: {
-                    label: "Transactions",
+                    label: 'Transactions',
                     icon: <FileTextOutlined />,
-                    parent: "referrals",
+                    parent: 'referrals',
                   },
                 },
                 {
-                  name: "referrals/rewards",
-                  list: "/referrals/rewards",
+                  name: 'referrals/rewards',
+                  list: '/referrals/rewards',
                   meta: {
-                    label: "Rewards",
+                    label: 'Rewards',
                     icon: <GiftOutlined />,
-                    parent: "referrals",
+                    parent: 'referrals',
                   },
                 },
                 {
-                  name: "referrals/analytics",
-                  list: "/referrals/analytics",
+                  name: 'referrals/analytics',
+                  list: '/referrals/analytics',
                   meta: {
-                    label: "Analytics",
+                    label: 'Analytics',
                     icon: <BarChartOutlined />,
-                    parent: "referrals",
+                    parent: 'referrals',
                   },
                 },
               ]}
@@ -583,20 +580,19 @@ function App() {
                 {/* Public authentication routes */}
                 <Route
                   element={
-
-                    <Authenticated key="auth-routes" fallback={<Outlet />}>
-                      <NavigateToResource resource="dashboard" />
+                    <Authenticated key='auth-routes' fallback={<Outlet />}>
+                      <NavigateToResource resource='dashboard' />
                     </Authenticated>
                   }
                 >
-                  <Route path="/auth">
-                    <Route path="login" element={<AdminLogin />} />
+                  <Route path='/auth'>
+                    <Route path='login' element={<AdminLogin />} />
                     <Route
-                      path="forgot-password"
+                      path='forgot-password'
                       element={<AdminForgotPassword />}
                     />
                     <Route
-                      path="reset-password"
+                      path='reset-password'
                       element={<AdminResetPassword />}
                     />
                   </Route>
@@ -623,20 +619,19 @@ function App() {
                   <Route path='/admins'>
                     <Route index element={<AdminList />} />
                     {/* <Route path='show/:id' element={<AdminShow />} /> */}
-                    <Route path="edit/:id" element={<AdminEdit />} />
+                    <Route path='edit/:id' element={<AdminEdit />} />
                     <Route path='create' element={<AdminCreate />} />
                   </Route>
 
                   {/* Driver routes */}
                   <Route path='/drivers'>
-
                     <Route index element={<DriverList />} />
-                    {/* <Route path='show/:id' element={<DriverShow />} /> */}
-                    {/* <Route path='edit/:id' element={<DriverEdit />} /> */}
+                    <Route path='show/:id' element={<DriverShow />} />
+                    <Route path='edit/:id' element={<DriverEdit />} />
                     {/* <Route path='create' element={<DriverCreate />} /> */}
                   </Route>
                   {/* Customer routes */}
-                  <Route path="/customers">
+                  <Route path='/customers'>
                     <Route index element={<CustomerList />} />
                     {/* <Route path='show/:id' element={<CustomerShow />} /> */}
                     {/* <Route path='edit/:id' element={<CustomerEdit />} /> */}
@@ -678,38 +673,40 @@ function App() {
                     <Route index element={<NotificationList />} />
                     <Route path='create' element={<NotificationCreate />} />
                   </Route>
-                  <Route path="/notifications">
+                  <Route path='/notifications'>
                     <Route index element={<NotificationList />} />
-                    <Route path="create" element={<NotificationCreate />} />
+                    <Route path='create' element={<NotificationCreate />} />
                   </Route>
 
                   {/* Audit logs route */}
-                  <Route path="/audit-logs" element={<AuditLogs />} />
+                  <Route path='/audit-logs' element={<AuditLogs />} />
 
-                  <Route path="/support">
+                  <Route path='/support'>
                     <Route index element={<SupportTicketList />} />
                   </Route>
 
                   {/* Settings route */}
-                  <Route path="/settings" element={<SystemSettings />} />
+                  <Route path='/settings' element={<SystemSettings />} />
 
                   {/* Referral routes */}
-                  <Route path="/referrals">
-                    <Route path="campaigns" element={<CampaignList />} />
-                    <Route path="transactions" element={<TransactionList />} />
-                    <Route path="rewards" element={<RewardList />} />
-                    <Route path="analytics" element={<ReferralAnalyticsDashboard />} />
+                  <Route path='/referrals'>
+                    <Route path='campaigns' element={<CampaignList />} />
+                    <Route path='transactions' element={<TransactionList />} />
+                    <Route path='rewards' element={<RewardList />} />
+                    <Route
+                      path='analytics'
+                      element={<ReferralAnalyticsDashboard />}
+                    />
                   </Route>
 
                   {/* Catch all */}
-                  <Route path="*" element={<ErrorComponent />} />
+                  <Route path='*' element={<ErrorComponent />} />
                 </Route>
 
                 {/* Root redirect */}
                 <Route
                   path='/'
                   element={<NavigateToResource resource='dashboard' />}
-
                 />
               </Routes>
               <UnsavedChangesNotifier />
