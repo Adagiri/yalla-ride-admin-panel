@@ -283,8 +283,25 @@ const GET_VEHICLES = gql`
       color
       vehicleInspectionDone
       identificationNumber
+      inspectionStatus
       driverId
       plateNumber
+      driver {
+        firstname
+        lastname
+        email
+        profilePhoto
+        id
+        phone {
+          countryCode
+          fullPhone
+          localNumber
+        }
+        vehicleInspectionDone
+        isOnline
+        isAvailable
+        isEmailVerified
+      }
       createdAt
       updatedAt
     }
@@ -525,9 +542,9 @@ const GET_ADMIN = gql`
       department
       employeeId
       phone {
-          countryCode
-          fullPhone
-          localNumber
+        countryCode
+        fullPhone
+        localNumber
       }
       isEmailVerified
       isMFAEnabled
@@ -574,9 +591,9 @@ const UPDATE_ADMIN = gql`
       department
       employeeId
       phone {
-          countryCode
-          fullPhone
-          localNumber
+        countryCode
+        fullPhone
+        localNumber
       }
       permissions
       isActive
@@ -879,7 +896,6 @@ const GET_DASHBOARD_METRICS = gql`
   }
 `;
 
-// VERIFICATION MUTATIONS
 const TOGGLE_DRIVER_LICENSE_VERIFICATION = gql`
   mutation ToggleDriverLicenseVerification($userId: ID!, $verified: Boolean!) {
     toggleDriverLicenseVerification(userId: $userId, verified: $verified) {
@@ -902,6 +918,14 @@ const UPDATE_DRIVER_VEHICLE_INFO = gql`
     updateDriverVehicleInfo(input: $input) {
       id
       vehicleInfoSet
+    }
+  }
+`;
+const UPDATE_VEHICLE_INSPECTION = gql`
+  mutation UpdateVehicleInspection($input: UpdateVehicleInspectionInput) {
+    updateVehicleInspection(input: $input) {
+      id
+      inspectionStatus
     }
   }
 `;
@@ -993,12 +1017,10 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
           if ('field' in f && f.field && f.value !== undefined) {
             // Handle search filter
             if (f.field === 'q' || f.field === 'search') {
-
               filter.search = f.value;
             }
             // Handle vehicle inspection filter (convert string to boolean)
             else if (
-
               f.field === 'vehicleInspectionDone' &&
               (f.value === 'true' || f.value === 'false')
             ) {
@@ -1079,19 +1101,18 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
 
       let data, total;
 
-
-      if (resource === "admins") {
+      if (resource === 'admins') {
         const adminData = result.data.getAllAdmins;
         data = adminData?.admins || [];
         total = adminData?.total || 0;
-      } else if (resource === "audit-logs") {
+      } else if (resource === 'audit-logs') {
         const auditData = result.data.getAuditLogs;
         data = auditData?.logs || [];
         total = auditData?.total || 0;
-      } else if (resource === "locations") {
+      } else if (resource === 'locations') {
         const locationData = result.data.listLocations;
         if (!locationData) {
-          throw new Error("listLocations data is undefined");
+          throw new Error('listLocations data is undefined');
         }
         data = locationData.data || [];
         total = locationData.paginationResult?.totalDocs || data.length;
@@ -1122,10 +1143,9 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
   },
 
   getOne: async ({ resource, id }) => {
-
+    console.log('id-resource', id, resource);
     try {
       if (resource.startsWith('settings-')) {
-
         return await handleSettingsGetOne(resource, id, client);
       }
 
@@ -1165,7 +1185,8 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         default:
           throw new Error(`Resource ${resource} not supported for getOne`);
       }
-
+      console.log('.......');
+      console.log('getting-driver...');
       const result = await client.query(query, { id }).toPromise();
 
       if (result.error) {
@@ -1188,7 +1209,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
   create: async ({ resource, variables }) => {
     try {
       if (resource.startsWith('settings-')) {
-
         return await handleSettingsCreate(resource, variables, client);
       }
       let mutation;
@@ -1246,7 +1266,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
   update: async ({ resource, id, variables }) => {
     try {
       if (resource.startsWith('settings-')) {
-
         return await handleSettingsUpdate(resource, id, variables, client);
       }
 
@@ -1254,7 +1273,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       let dataKey;
 
       switch (resource) {
-
         case 'admins':
           mutation = UPDATE_ADMIN;
           dataKey = 'updateAdmin';
@@ -1309,7 +1327,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       let mutation;
 
       switch (resource) {
-
         case 'admins':
           mutation = DELETE_ADMIN;
           break;
@@ -1317,7 +1334,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
           mutation = DELETE_VEHICLE;
           break;
         case 'locations':
-
           mutation = DELETE_LOCATION;
           break;
         default:
@@ -1340,60 +1356,51 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
   },
 
   getApiUrl: () => {
-
     return import.meta.env.VITE_API_URL || 'http://localhost:8080/graphql';
-
   },
 
   custom: async ({ url, method, meta, payload }) => {
     try {
       if (url === 'dashboard-metrics') {
-
         const result = await client
           .query(GET_DASHBOARD_METRICS, {})
           .toPromise();
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.getDashboardMetrics)
-
           throw new Error('No data returned for dashboard-metrics');
         return { data: result.data.getDashboardMetrics };
       }
 
       if (url === 'audit-stats') {
-
         const result = await client.query(GET_AUDIT_STATS, meta).toPromise();
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.getAuditStats)
-
           throw new Error('No data returned for audit-stats');
         return { data: result.data.getAuditStats };
       }
 
       if (url === 'audit-logs') {
-
         const result = await client
           .query(GET_AUDIT_LOGS, { filters: meta?.query || {} })
           .toPromise();
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.getAuditLogs)
-
           throw new Error('No data returned for audit-logs');
         return { data: result.data.getAuditLogs };
       }
 
       if (url === 'activate-admin') {
         const adminIdPayload = payload as { adminId: string };
-       const result = await client
+        const result = await client
           .mutation(ACTIVATE_ADMIN, { id: adminIdPayload?.adminId })
 
           .toPromise();
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.activateAdmin)
-
           throw new Error('No data returned for activate-admin');
         return { data: result.data.activateAdmin };
       }
@@ -1407,13 +1414,11 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.deactivateAdmin)
-
           throw new Error('No data returned for deactivate-admin');
         return { data: result.data.deactivateAdmin };
       }
       if (
         url === 'find-nearby-locations' &&
-
         meta?.longitude &&
         meta?.latitude
       ) {
@@ -1445,7 +1450,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
         if (result.error)
           throw new Error(`GraphQL Error: ${result.error.message}`);
         if (!result.data?.findLocationsByPoint)
-
           throw new Error('No data returned for find-locations-by-point');
         return { data: result.data.findLocationsByPoint };
       }
@@ -1471,7 +1475,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'toggle-driver-license-verification') {
-
         const verificationPayload = payload as VerificationPayload;
         const userId = verificationPayload?.userId;
         const verified = verificationPayload?.verified;
@@ -1491,13 +1494,11 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'toggle-vehicle-inspection') {
-
         const inspectionPayload = payload as VehicleInspectionPayload;
         const userId = inspectionPayload?.userId;
         const inspected = inspectionPayload?.inspected;
 
         if (!userId) throw new Error('User ID is required');
-
 
         const result = await client
           .mutation(TOGGLE_VEHICLE_INSPECTION, {
@@ -1514,7 +1515,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       // ===== SETTINGS CUSTOM OPERATIONS =====
 
       if (url === 'get-general-settings') {
-
         const result = await client
           .query(SETTINGS_OPERATIONS.GET_GENERAL_SETTINGS, {})
           .toPromise();
@@ -1524,7 +1524,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'get-pricing-settings') {
-
         const result = await client
           .query(SETTINGS_OPERATIONS.GET_PRICING_SETTINGS, {})
           .toPromise();
@@ -1534,7 +1533,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'get-payment-settings') {
-
         const result = await client
           .query(SETTINGS_OPERATIONS.GET_PAYMENT_SETTINGS, {})
           .toPromise();
@@ -1544,7 +1542,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'get-security-settings') {
-
         const result = await client
           .query(SETTINGS_OPERATIONS.GET_SECURITY_SETTINGS, {})
           .toPromise();
@@ -1554,7 +1551,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'create-general-setting') {
-
         const result = await client
           .mutation(SETTINGS_OPERATIONS.CREATE_GENERAL_SETTING, {
             input: payload,
@@ -1566,7 +1562,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'update-general-setting') {
-
         const settingsPayload = payload as SettingsUpdatePayload;
 
         const result = await client
@@ -1581,7 +1576,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'activate-general-setting') {
-
         const settingsPayload = payload as { id: string };
         const result = await client
           .mutation(SETTINGS_OPERATIONS.ACTIVATE_GENERAL_SETTING, {
@@ -1594,7 +1588,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'create-pricing-setting') {
-
         const result = await client
           .mutation(SETTINGS_OPERATIONS.CREATE_PRICING_SETTING, {
             input: payload,
@@ -1606,7 +1599,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'update-pricing-setting') {
-
         const settingsPayload = payload as SettingsUpdatePayload;
         const result = await client
           .mutation(SETTINGS_OPERATIONS.UPDATE_PRICING_SETTING, {
@@ -1620,7 +1612,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'activate-pricing-setting') {
-
         const settingsPayload = payload as { id: string };
         const result = await client
           .mutation(SETTINGS_OPERATIONS.ACTIVATE_PRICING_SETTING, {
@@ -1633,7 +1624,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'create-payment-setting') {
-
         const result = await client
           .mutation(SETTINGS_OPERATIONS.CREATE_PAYMENT_SETTING, {
             input: payload,
@@ -1645,7 +1635,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'update-payment-setting') {
-
         const settingsPayload = payload as SettingsUpdatePayload;
         const result = await client
           .mutation(SETTINGS_OPERATIONS.UPDATE_PAYMENT_SETTING, {
@@ -1659,7 +1648,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'activate-payment-setting') {
-
         const settingsPayload = payload as { id: string };
         const result = await client
           .mutation(SETTINGS_OPERATIONS.ACTIVATE_PAYMENT_SETTING, {
@@ -1672,7 +1660,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'create-security-setting') {
-
         const result = await client
           .mutation(SETTINGS_OPERATIONS.CREATE_SECURITY_SETTING, {
             input: payload,
@@ -1684,7 +1671,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'update-security-setting') {
-
         const settingsPayload = payload as { id: string; input: any };
         const result = await client
           .mutation(SETTINGS_OPERATIONS.UPDATE_SECURITY_SETTING, {
@@ -1698,7 +1684,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'activate-security-setting') {
-
         const settingsPayload = payload as { id: string };
         const result = await client
           .mutation(SETTINGS_OPERATIONS.ACTIVATE_SECURITY_SETTING, {
@@ -1711,7 +1696,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'get-system-health') {
-
         const result = await client
           .query(SETTINGS_OPERATIONS.GET_SYSTEM_HEALTH, {})
           .toPromise();
@@ -1721,7 +1705,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'get-system-health-stats') {
-
         const result = await client
           .query(SETTINGS_OPERATIONS.GET_SYSTEM_HEALTH_STATS, {})
           .toPromise();
@@ -1731,7 +1714,6 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'refresh-system-health') {
-
         const result = await client
           .mutation(SETTINGS_OPERATIONS.REFRESH_SYSTEM_HEALTH, {})
           .toPromise();
@@ -1741,44 +1723,23 @@ export const createCustomDataProvider = (client: Client): DataProvider => ({
       }
 
       if (url === 'update-vehicle') {
-        const id = (payload as any)?.id;
         const input = (payload as any)?.input;
-
-        if (!id) throw new Error('Vehicle ID is required');
-
-        const [driverResp, vehicleResp] = await Promise.all([
-          client
-            .mutation(UPDATE_DRIVER_VEHICLE_INFO, {
-              input: {
-                driverId: input.driverId,
-                vehicleInfoSet: input?.vehicleInspectionDone,
-              },
-            })
-            .toPromise(),
-
-          client
-            .mutation(UPDATE_VEHICLE, {
-              id,
-              input: {
-                vehicleInspectionDone: input?.vehicleInspectionDone,
-              },
-            })
-            .toPromise(),
-        ]);
-
-        if (driverResp.error) {
+        console.log(input, 'input---');
+        const result = await client.mutation(UPDATE_VEHICLE_INSPECTION, {
+          input: {
+            driverId: input.driverId,
+            vehicleId: input.id,
+            inspectionStatus: input.inspectionStatus,
+          },
+        });
+        console.log(result, 'inspection result');
+        if (result.error) {
           throw new Error(
-            `GraphQL Error (updateDriverVehicleInfo): ${driverResp.error.message}`
+            `GraphQL Error (updateVehicleInspection): ${result.error.message}`
           );
         }
 
-        if (vehicleResp.error) {
-          throw new Error(
-            `GraphQL Error (updateVehicle): ${vehicleResp.error.message}`
-          );
-        }
-
-        return { data: vehicleResp.data?.updateVehicle };
+        return { data: result.data?.updateVehicleInspection };
       }
 
       throw new Error(`Custom method for ${url} not implemented`);
@@ -1840,7 +1801,6 @@ const handleSettingsGetOne = async (
       query = SETTINGS_OPERATIONS.GET_PAYMENT_SETTINGS;
       break;
     case 'settings-security':
-
       query = SETTINGS_OPERATIONS.GET_SECURITY_SETTINGS;
       break;
     default:
@@ -1874,7 +1834,6 @@ const handleSettingsCreate = async (
       mutation = SETTINGS_OPERATIONS.CREATE_PAYMENT_SETTING;
       break;
     case 'settings-security':
-
       mutation = SETTINGS_OPERATIONS.CREATE_SECURITY_SETTING;
       break;
     default:
@@ -1911,7 +1870,6 @@ const handleSettingsUpdate = async (
       mutation = SETTINGS_OPERATIONS.UPDATE_PAYMENT_SETTING;
       break;
     case 'settings-security':
-
       mutation = SETTINGS_OPERATIONS.UPDATE_SECURITY_SETTING;
       break;
     default:

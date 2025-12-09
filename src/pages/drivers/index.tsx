@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import {
   useTable,
   useNotification,
@@ -6,8 +6,9 @@ import {
   useCustom,
   CrudFilters,
   getDefaultFilter,
-} from "@refinedev/core";
-import { List, getDefaultSortOrder } from "@refinedev/antd";
+  useNavigation,
+} from '@refinedev/core';
+import { List, getDefaultSortOrder } from '@refinedev/antd';
 import {
   Table,
   Space,
@@ -28,7 +29,10 @@ import {
   Spin,
   Alert,
   Form,
-} from "antd";
+  Descriptions,
+  Dropdown,
+  Menu,
+} from 'antd';
 import {
   UserOutlined,
   CarOutlined,
@@ -41,10 +45,15 @@ import {
   PictureOutlined,
   ExclamationCircleOutlined,
   SearchOutlined,
-} from "@ant-design/icons";
+  LinkOutlined,
+  CarFilled,
+  EditOutlined,
+  MoreOutlined,
+} from '@ant-design/icons';
 
 const { Text, Title } = Typography;
 
+// Extended Driver interface with vehicle info
 interface Driver {
   id: string;
   firstname: string;
@@ -69,6 +78,16 @@ interface Driver {
     totalEarnings: number;
   };
   paymentModel?: string;
+  vehicleId?: string;
+  vehicle?: {
+    id: string;
+    brand: string;
+    modelName: string;
+    plateNumber: string;
+    color: string;
+    inspectionStatus: string;
+    vehicleInspectionDone: boolean;
+  };
 }
 
 interface VerificationSectionProps {
@@ -117,8 +136,8 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
       isLoading: frontIsLoading,
       error: frontError,
     } = useCustom<FileDownloadResponse>({
-      url: "get-file-download-url",
-      method: "get",
+      url: 'get-file-download-url',
+      method: 'get',
       config: {
         payload: {
           key: images?.front,
@@ -132,7 +151,7 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
           }
         },
         onError: (error) => {
-          console.error("❌ Front image fetch error:", error);
+          open?.({ type: 'error', message: 'Failed to load front image' });
         },
       },
     });
@@ -142,8 +161,8 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
       isLoading: backIsLoading,
       error: backError,
     } = useCustom<FileDownloadResponse>({
-      url: "get-file-download-url",
-      method: "get",
+      url: 'get-file-download-url',
+      method: 'get',
       config: {
         payload: {
           key: images?.back,
@@ -157,8 +176,7 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
           }
         },
         onError: (error) => {
-          console.error("Back image fetch error:", error);
-          open?.({ type: "error", message: "Failed to load back image" });
+          open?.({ type: 'error', message: 'Failed to load back image' });
         },
       },
     });
@@ -177,24 +195,23 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
       alt: string,
       error?: any
     ) => {
-      console.log(url, "profilePhoto");
       if (error)
-        return <Alert message="Failed to load image" type="error" showIcon />;
-      if (loading) return <Spin tip="Loading image..." />;
+        return <Alert message='Failed to load image' type='error' showIcon />;
+      if (loading) return <Spin tip='Loading image...' />;
       if (url) {
         return (
           <Image
             src={url}
             alt={alt}
-            style={{ width: "100%", maxHeight: 200, objectFit: "contain" }}
+            style={{ width: '100%', maxHeight: 200, objectFit: 'contain' }}
             placeholder={<Spin />}
           />
         );
       }
       return (
-        <div style={{ textAlign: "center", padding: "20px" }}>
+        <div style={{ textAlign: 'center', padding: '20px' }}>
           <ExclamationCircleOutlined
-            style={{ fontSize: 24, color: "#ff4d4f" }}
+            style={{ fontSize: 24, color: '#ff4d4f' }}
           />
           <div style={{ marginTop: 8 }}>Image not available</div>
         </div>
@@ -203,61 +220,61 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
 
     return (
       <Card
-        size="small"
+        size='small'
         style={{
-          border: `2px solid ${verified ? "#52c41a" : "#d9d9d9"}`,
+          border: `2px solid ${verified ? '#52c41a' : '#d9d9d9'}`,
           marginBottom: 16,
         }}
       >
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             marginBottom: 16,
           }}
         >
           <Space>
-            {title === "Profile Photo" && <PictureOutlined />}
-            {title === "Driver License" && <IdcardOutlined />}
-            {/* {title === "Vehicle Inspection" && <CarOutlined />} */}
-            {title === "Personal Information" && <UserOutlined />}
+            {title === 'Profile Photo' && <PictureOutlined />}
+            {title === 'Driver License' && <IdcardOutlined />}
+            {title === 'Vehicle Inspection' && <CarOutlined />}
+            {title === 'Personal Information' && <UserOutlined />}
             <Text strong>{title}</Text>
           </Space>
 
           <Space>
             <Badge
-              status={verified ? "success" : "default"}
-              text={verified ? "Verified" : "Pending"}
+              status={verified ? 'success' : 'default'}
+              text={verified ? 'Verified' : 'Pending'}
             />
             {canBeVerified && (
               <Switch
                 checked={verified}
                 onChange={onToggle}
                 loading={loading}
-                checkedChildren="Approved"
-                unCheckedChildren="Reject"
+                checkedChildren='Approved'
+                unCheckedChildren='Reject'
               />
             )}
           </Space>
         </div>
 
-        {title === "Driver License" && (images?.front || images?.back) && (
+        {title === 'Driver License' && (images?.front || images?.back) && (
           <div>
             <Text
-              type="secondary"
-              style={{ marginBottom: 8, display: "block" }}
+              type='secondary'
+              style={{ marginBottom: 8, display: 'block' }}
             >
               License Images:
             </Text>
             <Row gutter={16}>
               {images.front && (
                 <Col span={12}>
-                  <Card size="small" title="Front Side">
+                  <Card size='small' title='Front Side'>
                     {renderImageWithFallback(
                       imageUrls?.front,
                       loadingImages?.front,
-                      "Driver License Front",
+                      'Driver License Front',
                       frontError
                     )}
                   </Card>
@@ -265,11 +282,11 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
               )}
               {images?.back && (
                 <Col span={12}>
-                  <Card size="small" title="Back Side">
+                  <Card size='small' title='Back Side'>
                     {renderImageWithFallback(
                       imageUrls?.back,
                       loadingImages?.back,
-                      "Driver License Back",
+                      'Driver License Back',
                       backError
                     )}
                   </Card>
@@ -279,19 +296,18 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
           </div>
         )}
 
-        {title === "Profile Photo" && src && (
-          <div style={{ textAlign: "center" }}>
+        {title === 'Profile Photo' && src && (
+          <div style={{ textAlign: 'center' }}>
             <Text
-              type="secondary"
-              style={{ marginBottom: 8, display: "block" }}
+              type='secondary'
+              style={{ marginBottom: 8, display: 'block' }}
             >
               Profile Photo:
             </Text>
             {renderImageWithFallback(
               src,
               loadingImages?.profilePhoto,
-              "Profile Photo"
-              // frontError
+              'Profile Photo'
             )}
           </div>
         )}
@@ -300,10 +316,88 @@ const VerificationSection: React.FC<VerificationSectionProps> = memo(
   }
 );
 
+// Vehicle Information Card Component
+const VehicleInfoCard: React.FC<{
+  vehicle: Driver['vehicle'];
+  onViewVehicle: (vehicleId: string) => void;
+}> = memo(({ vehicle, onViewVehicle }) => {
+  const getInspectionStatusColor = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case 'APPROVED':
+        return 'success';
+      case 'PENDING':
+        return 'warning';
+      case 'REJECTED':
+        return 'error';
+      case 'EXPIRED':
+        return 'default';
+      default:
+        return 'default';
+    }
+  };
+
+  if (!vehicle) {
+    return (
+      <Card size='small' title='Vehicle Information'>
+        <Alert
+          message='No Vehicle Assigned'
+          description='This driver has not been assigned a vehicle yet.'
+          type='info'
+          showIcon
+        />
+      </Card>
+    );
+  }
+
+  return (
+    <Card
+      size='small'
+      title={
+        <Space>
+          <CarFilled />
+          <span>Vehicle Information</span>
+        </Space>
+      }
+      extra={
+        <Button
+          type='link'
+          icon={<LinkOutlined />}
+          onClick={() => onViewVehicle(vehicle.id)}
+          size='small'
+        >
+          View Vehicle
+        </Button>
+      }
+    >
+      <Descriptions column={1} size='small'>
+        <Descriptions.Item label='Brand & Model'>
+          {vehicle.brand} {vehicle.modelName}
+        </Descriptions.Item>
+        <Descriptions.Item label='Plate Number'>
+          <Text strong>{vehicle.plateNumber}</Text>
+        </Descriptions.Item>
+        <Descriptions.Item label='Color'>{vehicle.color}</Descriptions.Item>
+        <Descriptions.Item label='Inspection Status'>
+          <Space>
+            <Badge
+              status={getInspectionStatusColor(vehicle.inspectionStatus)}
+              text={vehicle.inspectionStatus?.toUpperCase() || 'PENDING'}
+            />
+            {vehicle.vehicleInspectionDone && (
+              <CheckCircleOutlined style={{ color: '#52c41a' }} />
+            )}
+          </Space>
+        </Descriptions.Item>
+      </Descriptions>
+    </Card>
+  );
+});
+
 export const DriverList: React.FC = () => {
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { open } = useNotification();
+  const { show, edit } = useNavigation();
   const [searchForm] = Form?.useForm();
 
   const {
@@ -316,16 +410,15 @@ export const DriverList: React.FC = () => {
     pageSize,
     setPageSize,
   } = useTable<Driver>({
-    resource: "drivers",
-    initialSorter: [{ field: "createdAt", order: "desc" }],
+    resource: 'drivers',
+    initialSorter: [{ field: 'createdAt', order: 'desc' }],
     syncWithLocation: true,
     queryOptions: {
       retry: 3,
       onError: (error) => {
-        console.error("Table fetch error:", error);
         open?.({
-          type: "error",
-          message: "Failed to load drivers. Please check backend connection.",
+          type: 'error',
+          message: 'Failed to load drivers. Please check backend connection.',
         });
       },
     },
@@ -335,10 +428,9 @@ export const DriverList: React.FC = () => {
   const { mutate: mutateInspection } = useCustomMutation();
 
   const dataSource = tableQuery?.data?.data || [];
-  console.log(dataSource, "🚗 Loaded Drivers");
   const total = tableQuery?.data?.total || 0;
 
-  // Create manual pagination since tableProps doesn't exist
+  // Create manual pagination
   const pagination = {
     current: current || 1,
     pageSize: pageSize || 10,
@@ -362,8 +454,8 @@ export const DriverList: React.FC = () => {
       const newFilters: CrudFilters = [];
       if (values?.search && values.search?.trim()) {
         newFilters.push({
-          field: "search",
-          operator: "contains" as const,
+          field: 'search',
+          operator: 'contains' as const,
           value: values.search.trim(),
         });
       }
@@ -377,18 +469,18 @@ export const DriverList: React.FC = () => {
   // Handle reset
   const handleReset = useCallback(() => {
     searchForm.resetFields();
-    setFilters([], "replace");
+    setFilters([], 'replace');
     setCurrent(1);
     tableQuery.refetch();
   }, [searchForm, setFilters, setCurrent, tableQuery]);
 
   // Sync form with current filters
   useEffect(() => {
-    const searchFilter = currentFilters?.find((f: any) => f.field === "search");
+    const searchFilter = currentFilters?.find((f: any) => f.field === 'search');
     if (searchFilter) {
-      searchForm.setFieldValue("search", searchFilter.value);
+      searchForm.setFieldValue('search', searchFilter.value);
     } else {
-      searchForm.setFieldValue("search", "");
+      searchForm.setFieldValue('search', '');
     }
   }, [currentFilters, searchForm]);
 
@@ -398,17 +490,25 @@ export const DriverList: React.FC = () => {
     setDrawerVisible(true);
   }, []);
 
+  // Handle navigation to vehicle
+  const handleViewVehicle = useCallback(
+    (vehicleId: string) => {
+      show('vehicles', vehicleId);
+    },
+    [show]
+  );
+
   const handleLicenseVerification = useCallback(
     (verified: boolean) => {
       if (!selectedDriver?.id) {
-        open?.({ type: "error", message: "No driver selected" });
+        open?.({ type: 'error', message: 'No driver selected' });
         return;
       }
 
       mutateLicense(
         {
-          url: "toggle-driver-license-verification",
-          method: "post",
+          url: 'toggle-driver-license-verification',
+          method: 'post',
           values: {
             userId: selectedDriver?.id,
             verified,
@@ -417,8 +517,8 @@ export const DriverList: React.FC = () => {
         {
           onSuccess: (data) => {
             open?.({
-              type: "success",
-              message: `License ${verified ? "approved" : "rejected"}`,
+              type: 'success',
+              message: `License ${verified ? 'approved' : 'rejected'}`,
             });
             setSelectedDriver((prev) =>
               prev ? { ...prev, driverLicenseVerified: verified } : null
@@ -426,59 +526,96 @@ export const DriverList: React.FC = () => {
             tableQuery?.refetch();
           },
           onError: (error) =>
-            open?.({ type: "error", message: `Failed: ${error.message}` }),
+            open?.({ type: 'error', message: `Failed: ${error.message}` }),
         }
       );
     },
     [selectedDriver, open, mutateLicense, tableQuery]
   );
 
-  // const handleVehicleInspection = useCallback(
-  //   (inspected: boolean) => {
-  //     if (!selectedDriver?.id) {
-  //       open?.({ type: "error", message: "No driver selected" });
-  //       return;
-  //     }
+  const handleVehicleInspection = useCallback(
+    (inspected: boolean) => {
+      if (!selectedDriver?.id) {
+        open?.({ type: 'error', message: 'No driver selected' });
+        return;
+      }
 
-  //     mutateInspection(
-  //       {
-  //         url: "toggle-vehicle-inspection",
-  //         method: "post",
-  //         values: {
-  //           userId: selectedDriver.id,
-  //           inspected,
-  //         },
-  //       },
-  //       {
-  //         onSuccess: (data) => {
-  //           open?.({
-  //             type: "success",
-  //             message: `Inspection ${inspected ? "approved" : "rejected"}`,
-  //           });
-  //           setSelectedDriver((prev) =>
-  //             prev ? { ...prev, vehicleInspectionDone: inspected } : null
-  //           );
-  //           tableQuery.refetch();
-  //         },
-  //         onError: (error) =>
-  //           open?.({ type: "error", message: `Failed: ${error.message}` }),
-  //       }
-  //     );
-  //   },
-  //   [selectedDriver, open, mutateInspection, tableQuery]
-  // );
+      mutateInspection(
+        {
+          url: 'toggle-vehicle-inspection',
+          method: 'post',
+          values: {
+            userId: selectedDriver.id,
+            inspected,
+          },
+        },
+        {
+          onSuccess: (data) => {
+            open?.({
+              type: 'success',
+              message: `Inspection ${inspected ? 'approved' : 'rejected'}`,
+            });
+            setSelectedDriver((prev) =>
+              prev ? { ...prev, vehicleInspectionDone: inspected } : null
+            );
+            tableQuery.refetch();
+          },
+          onError: (error) =>
+            open?.({ type: 'error', message: `Failed: ${error.message}` }),
+        }
+      );
+    },
+    [selectedDriver, open, mutateInspection, tableQuery]
+  );
+
+  // Action menu for dropdown
+  const renderActionMenu = (record: Driver) => (
+    <Menu>
+      <Menu.Item
+        key='view'
+        icon={<EyeOutlined />}
+        onClick={() => show('drivers', record.id)}
+      >
+        View Details
+      </Menu.Item>
+      <Menu.Item
+        key='edit'
+        icon={<EditOutlined />}
+        onClick={() => edit('drivers', record.id)}
+      >
+        Edit Driver
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item
+        key='verify'
+        icon={<CheckCircleOutlined />}
+        onClick={() => handleViewDriver(record)}
+      >
+        Verify Documents
+      </Menu.Item>
+      {record.vehicleId && (
+        <Menu.Item
+          key='vehicle'
+          icon={<CarOutlined />}
+          onClick={() => handleViewVehicle(record.vehicleId!)}
+        >
+          View Vehicle
+        </Menu.Item>
+      )}
+    </Menu>
+  );
 
   // Table columns definition
   const columns = [
     {
-      title: "Driver",
-      key: "driver",
+      title: 'Driver',
+      key: 'driver',
       render: (_: any, record: Driver) => (
         <Space>
           <Avatar
             src={record?.profilePhoto}
             icon={<UserOutlined />}
-            size="large"
+            size='large'
           />
           <div>
             <div>
@@ -487,122 +624,124 @@ export const DriverList: React.FC = () => {
               </Text>
               {record.profilePhotoSet && (
                 <CheckCircleOutlined
-                  style={{ color: "#52c41a", marginLeft: 8 }}
+                  style={{ color: '#52c41a', marginLeft: 8 }}
                 />
               )}
             </div>
-            <div style={{ fontSize: "12px", color: "#666" }}>
+            <div style={{ fontSize: '12px', color: '#666' }}>
               {record.email}
             </div>
-            <div style={{ fontSize: "12px", color: "#666" }}>
+            <div style={{ fontSize: '12px', color: '#666' }}>
               {record.phone?.fullPhone}
             </div>
+            {record.vehicle && (
+              <div style={{ fontSize: '12px', color: '#1890ff' }}>
+                <CarFilled style={{ marginRight: 4 }} />
+                {record.vehicle.brand} • {record.vehicle.plateNumber}
+              </div>
+            )}
           </div>
         </Space>
       ),
       sorter: true,
-      defaultSortOrder: getDefaultSortOrder("firstname", sorters),
+      defaultSortOrder: getDefaultSortOrder('firstname', sorters),
     },
     {
-      title: "Status",
-      key: "status",
+      title: 'Status',
+      key: 'status',
       render: (_: any, record: Driver) => (
-        <Space direction="vertical" size="small">
+        <Space direction='vertical' size='small'>
           <Badge
-            status={record.isOnline ? "success" : "default"}
-            text={record.isOnline ? "Online" : "Offline"}
+            status={record.isOnline ? 'success' : 'default'}
+            text={record.isOnline ? 'Online' : 'Offline'}
           />
           <Badge
-            status={record.isAvailable ? "processing" : "default"}
-            text={record.isAvailable ? "Available" : "Busy"}
+            status={record.isAvailable ? 'processing' : 'default'}
+            text={record.isAvailable ? 'Available' : 'Busy'}
           />
         </Space>
       ),
       filters: [
-        { text: "Online", value: "online" },
-        { text: "Offline", value: "offline" },
+        { text: 'Online', value: 'online' },
+        { text: 'Offline', value: 'offline' },
       ],
       onFilter: (value: any, record: Driver) => {
-        if (value === "online") return record.isOnline;
-        if (value === "offline") return !record.isOnline;
+        if (value === 'online') return record.isOnline;
+        if (value === 'offline') return !record.isOnline;
         return true;
       },
     },
     {
-      title: "Payment Model",
-      dataIndex: "paymentModel",
-      key: "paymentModel",
+      title: 'Payment Model',
+      dataIndex: 'paymentModel',
+      key: 'paymentModel',
       render: (model: string) => (
-        <Tag color={model === "SUBSCRIPTION" ? "blue" : "orange"}>
-          {model || "COMMISSION"}
+        <Tag color={model === 'SUBSCRIPTION' ? 'blue' : 'orange'}>
+          {model || 'COMMISSION'}
         </Tag>
       ),
       filters: [
-        { text: "Subscription", value: "SUBSCRIPTION" },
-        { text: "Commission", value: "COMMISSION" },
+        { text: 'Subscription', value: 'SUBSCRIPTION' },
+        { text: 'Commission', value: 'COMMISSION' },
       ],
       onFilter: (value: any, record: Driver) => record.paymentModel === value,
     },
     {
-      title: "Verification Status",
-      key: "verification",
+      title: 'Verification Status',
+      key: 'verification',
       render: (_: any, record: Driver) => (
-        <Space direction="vertical" size="small">
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <Space direction='vertical' size='small'>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <PictureOutlined />
             <Text>Profile: </Text>
             {record.profilePhotoSet ? (
-              <CheckCircleOutlined style={{ color: "#52c41a" }} />
+              <CheckCircleOutlined style={{ color: '#52c41a' }} />
             ) : (
-              <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
+              <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <UserOutlined />
             <Text>Personal: </Text>
             {record.personalInfoSet ? (
-              <CheckCircleOutlined style={{ color: "#52c41a" }} />
+              <CheckCircleOutlined style={{ color: '#52c41a' }} />
             ) : (
-              <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
+              <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <IdcardOutlined />
             <Text>License: </Text>
             {record.driverLicenseVerified ? (
-              <CheckCircleOutlined style={{ color: "#52c41a" }} />
+              <CheckCircleOutlined style={{ color: '#52c41a' }} />
             ) : (
-              <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
+              <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
             )}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <CarOutlined />
             <Text>Vehicle: </Text>
             {record.vehicleInspectionDone ? (
-              <CheckCircleOutlined style={{ color: "#52c41a" }} />
+              <CheckCircleOutlined style={{ color: '#52c41a' }} />
             ) : (
-              <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
+              <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
             )}
           </div>
         </Space>
       ),
     },
     {
-      title: "Actions",
-      key: "actions",
-      fixed: "right" as const,
-      width: 120,
+      title: 'Actions',
+      key: 'actions',
+      fixed: 'right' as const,
+      width: 200,
       render: (_: any, record: Driver) => (
-        <Tooltip title="View Details & Verify">
-          <Button
-            icon={<EyeOutlined />}
-            size="small"
-            type="primary"
-            onClick={() => handleViewDriver(record)}
-          >
-            Verify
-          </Button>
-        </Tooltip>
+        <Space>
+          {/* Dropdown for Additional Actions */}
+          <Dropdown overlay={renderActionMenu(record)} trigger={['click']}>
+            <Button icon={<MoreOutlined />} size='small' />
+          </Dropdown>
+        </Space>
       ),
     },
   ];
@@ -614,18 +753,23 @@ export const DriverList: React.FC = () => {
       <List
         breadcrumb={false}
         headerButtons={() => (
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={handleReset}
-            loading={tableQuery.isFetching}
-          >
-            Refresh
-          </Button>
+          <Space>
+            <Button type='primary' onClick={() => show('drivers', 'create')}>
+              Create Driver
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleReset}
+              loading={tableQuery.isFetching}
+            >
+              Refresh
+            </Button>
+          </Space>
         )}
         title={
           <div>
             <Title level={3}>Driver Management</Title>
-            <Text type="secondary">
+            <Text type='secondary'>
               Manage drivers, track performance, and handle verifications
             </Text>
           </div>
@@ -633,9 +777,9 @@ export const DriverList: React.FC = () => {
       >
         {tableQuery.error && (
           <Alert
-            message="Error Loading Drivers"
+            message='Error Loading Drivers'
             description={tableQuery.error.message}
-            type="error"
+            type='error'
             showIcon
             style={{ marginBottom: 16 }}
           />
@@ -644,9 +788,9 @@ export const DriverList: React.FC = () => {
         {/* Summary Cards */}
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col span={6}>
-            <Card size="small">
+            <Card size='small'>
               <Statistic
-                title="Total Drivers"
+                title='Total Drivers'
                 value={dataSource.length}
                 prefix={<UserOutlined />}
                 loading={tableQuery.isLoading}
@@ -654,42 +798,42 @@ export const DriverList: React.FC = () => {
             </Card>
           </Col>
           <Col span={6}>
-            <Card size="small">
+            <Card size='small'>
               <Statistic
-                title="Online Drivers"
+                title='Online Drivers'
                 value={dataSource.filter((d) => d.isOnline).length}
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: "#52c41a" }}
+                valueStyle={{ color: '#52c41a' }}
                 loading={tableQuery.isLoading}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card size="small">
+            <Card size='small'>
               <Statistic
-                title="Verified Drivers"
+                title='Verified Drivers'
                 value={
                   dataSource.filter(
                     (d) => d.driverLicenseVerified && d.vehicleInspectionDone
                   ).length
                 }
                 prefix={<CheckCircleOutlined />}
-                valueStyle={{ color: "#722ed1" }}
+                valueStyle={{ color: '#722ed1' }}
                 loading={tableQuery.isLoading}
               />
             </Card>
           </Col>
           <Col span={6}>
-            <Card size="small">
+            <Card size='small'>
               <Statistic
-                title="Pending Verification"
+                title='Pending Verification'
                 value={
                   dataSource.filter(
                     (d) => !d.driverLicenseVerified || !d.vehicleInspectionDone
                   ).length
                 }
                 prefix={<CloseCircleOutlined />}
-                valueStyle={{ color: "#faad14" }}
+                valueStyle={{ color: '#faad14' }}
                 loading={tableQuery.isLoading}
               />
             </Card>
@@ -701,12 +845,12 @@ export const DriverList: React.FC = () => {
           <Form
             form={searchForm}
             onFinish={handleSearch}
-            layout="inline"
-            initialValues={{ search: "" }}
+            layout='inline'
+            initialValues={{ search: '' }}
           >
-            <Form.Item name="search">
+            <Form.Item name='search'>
               <Input
-                placeholder="Search drivers by name, email, or phone"
+                placeholder='Search drivers by name, email, or phone'
                 style={{ width: 300 }}
                 allowClear
                 onPressEnter={() => searchForm.submit()}
@@ -720,8 +864,8 @@ export const DriverList: React.FC = () => {
             <Form.Item>
               <Space>
                 <Button
-                  type="primary"
-                  htmlType="submit"
+                  type='primary'
+                  htmlType='submit'
                   loading={tableQuery.isFetching}
                   icon={<SearchOutlined />}
                 >
@@ -740,15 +884,14 @@ export const DriverList: React.FC = () => {
           </Form>
         </Card>
 
-        {/* FIX 3: Use manual table implementation since tableProps doesn't exist */}
+        {/* Drivers Table */}
         <Table<Driver>
           dataSource={dataSource}
           columns={columns}
-          rowKey="id"
-          scroll={{ x: 1200 }}
+          rowKey='id'
+          scroll={{ x: 1400 }}
           pagination={pagination}
           loading={tableQuery.isLoading || tableQuery.isFetching}
-          onChange={(pagination, filters, sorter) => {}}
         />
       </List>
 
@@ -758,13 +901,13 @@ export const DriverList: React.FC = () => {
           <Space>
             <UserOutlined />
             <span>
-              Driver Verification - {selectedDriver?.firstname}{" "}
+              Driver Verification - {selectedDriver?.firstname}{' '}
               {selectedDriver?.lastname}
             </span>
           </Space>
         }
-        placement="right"
-        size="large"
+        placement='right'
+        size='large'
         onClose={() => {
           setDrawerVisible(false);
           setSelectedDriver(null);
@@ -772,25 +915,57 @@ export const DriverList: React.FC = () => {
         open={drawerVisible}
         width={800}
         extra={
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={() => selectedDriver && handleViewDriver(selectedDriver)}
-          >
-            Refresh
-          </Button>
+          <Space>
+            <Button
+              icon={<EyeOutlined />}
+              onClick={() =>
+                selectedDriver && show('drivers', selectedDriver.id)
+              }
+            >
+              View Full Profile
+            </Button>
+            <Button
+              icon={<EditOutlined />}
+              onClick={() =>
+                selectedDriver && edit('drivers', selectedDriver.id)
+              }
+            >
+              Edit Driver
+            </Button>
+            {selectedDriver?.vehicleId && (
+              <Button
+                icon={<CarOutlined />}
+                onClick={() => handleViewVehicle(selectedDriver.vehicleId!)}
+              >
+                View Vehicle
+              </Button>
+            )}
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => selectedDriver && handleViewDriver(selectedDriver)}
+            >
+              Refresh
+            </Button>
+          </Space>
         }
       >
         {selectedDriver && (
-          <Space direction="vertical" style={{ width: "100%" }} size="large">
+          <Space direction='vertical' style={{ width: '100%' }} size='large'>
             <Alert
-              message="Verification Dashboard"
-              description="Review and verify driver documents."
-              type="info"
+              message='Verification Dashboard'
+              description='Review and verify driver documents.'
+              type='info'
               showIcon
             />
 
+            {/* Vehicle Information Card */}
+            <VehicleInfoCard
+              vehicle={selectedDriver.vehicle}
+              onViewVehicle={handleViewVehicle}
+            />
+
             <VerificationSection
-              title="Profile Photo"
+              title='Profile Photo'
               verified={selectedDriver.profilePhotoSet}
               onToggle={() => {}}
               src={selectedDriver.profilePhoto}
@@ -798,14 +973,14 @@ export const DriverList: React.FC = () => {
             />
 
             <VerificationSection
-              title="Personal Information"
+              title='Personal Information'
               verified={selectedDriver.personalInfoSet}
               onToggle={() => {}}
               canBeVerified={false}
             />
 
             <VerificationSection
-              title="Driver License"
+              title='Driver License'
               verified={selectedDriver.driverLicenseVerified}
               onToggle={handleLicenseVerification}
               images={{
@@ -819,52 +994,52 @@ export const DriverList: React.FC = () => {
               }
             />
 
-            {/* <VerificationSection
-              title="Vehicle Inspection"
+            <VerificationSection
+              title='Vehicle Inspection'
               verified={selectedDriver.vehicleInspectionDone}
               onToggle={handleVehicleInspection}
               loading={false}
               canBeVerified={true}
-            /> */}
+            />
 
             <Card
-              title="Overall Verification Status"
+              title='Overall Verification Status'
               style={{
                 background:
                   selectedDriver.driverLicenseVerified &&
                   selectedDriver.vehicleInspectionDone
-                    ? "#f6ffed"
-                    : "#fff2e8",
+                    ? '#f6ffed'
+                    : '#fff2e8',
                 border: `2px solid ${
                   selectedDriver.driverLicenseVerified &&
                   selectedDriver.vehicleInspectionDone
-                    ? "#52c41a"
-                    : "#faad14"
+                    ? '#52c41a'
+                    : '#faad14'
                 }`,
               }}
             >
-              <Space direction="vertical" style={{ width: "100%" }}>
+              <Space direction='vertical' style={{ width: '100%' }}>
                 <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
+                  style={{ display: 'flex', justifyContent: 'space-between' }}
                 >
                   <Text strong>Complete Verification:</Text>
                   <Badge
                     status={
                       selectedDriver.driverLicenseVerified &&
                       selectedDriver.vehicleInspectionDone
-                        ? "success"
-                        : "warning"
+                        ? 'success'
+                        : 'warning'
                     }
                     text={
                       selectedDriver.driverLicenseVerified &&
                       selectedDriver.vehicleInspectionDone
-                        ? "Fully Verified"
-                        : "Pending Verification"
+                        ? 'Fully Verified'
+                        : 'Pending Verification'
                     }
                   />
                 </div>
                 <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
+                  style={{ display: 'flex', justifyContent: 'space-between' }}
                 >
                   <Text>Can Accept Rides:</Text>
                   <Text
@@ -875,8 +1050,8 @@ export const DriverList: React.FC = () => {
                   >
                     {selectedDriver.driverLicenseVerified &&
                     selectedDriver.vehicleInspectionDone
-                      ? "Yes"
-                      : "No"}
+                      ? 'Yes'
+                      : 'No'}
                   </Text>
                 </div>
               </Space>
