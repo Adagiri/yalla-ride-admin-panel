@@ -334,7 +334,8 @@ export const CampaignList: React.FC = () => {
   };
 
   // Render reward display
-  const renderRewardValue = (type: RewardType, value: number, maxValue?: number) => {
+  const renderRewardValue = (type?: RewardType, value?: number, maxValue?: number) => {
+    value = value ? value: 1
     switch (type) {
       case RewardType.FREE_RIDE:
         return `${value} Free Ride${value > 1 ? 's' : ''}`;
@@ -593,7 +594,7 @@ export const CampaignList: React.FC = () => {
                   : 'No end date'}
               </Descriptions.Item>
               <Descriptions.Item label="Min Wallet Balance">
-                ₦{selectedCampaign.minWalletBalance.toFixed(2)}
+                ₦{selectedCampaign?.minWalletBalance?.toFixed(2)}
               </Descriptions.Item>
               <Descriptions.Item label="Referrer Reward">
                 {renderRewardValue(

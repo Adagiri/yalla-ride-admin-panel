@@ -325,13 +325,13 @@ export const ConstraintDefinitions: React.FC = () => {
               </Button>
             </Space>
           </div>
-          <Button
+          {/* <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={openCreateModal}
           >
             Create New Constraint
-          </Button>
+          </Button> */}
         </div>
 
         <Table
